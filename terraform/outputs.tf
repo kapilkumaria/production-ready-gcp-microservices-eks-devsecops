@@ -38,3 +38,10 @@ output "irsa_role_arn" {
   value = module.irsa.irsa_role_arn
 }
 
+output "cert_manager_irsa_role_arn" {
+  value = module.irsa_cert_manager.role_arn
+}
+
+output "cert_manager_route53_zone_id" {
+  value = module.irsa_cert_manager.zone_id
+}

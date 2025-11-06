@@ -75,5 +75,13 @@ module "monitoring" {
   depends_on = [module.eks] # Ensure EKS is created before Helm chart deployment
 }
 
+# IRSA for cert-manager Module Call
+module "irsa_cert_manager" {
+  source = "./modules/irsa-cert-manager"
+
+  cluster_name              = module.eks.cluster_name
+  cluster_oidc_issuer_url  = module.eks.cluster_oidc_issuer_url
+  domain                   = var.domain_name   # e.g. "kapilkumaria.com"
+}
 
 

@@ -49,3 +49,8 @@ variable "aws_region" {}
 variable "project_name" {}
 variable "cluster_name" {}
 variable "cluster_version" {}
+
+variable "domain_name" {
+  type = string
+  description = "Base domain for Route53, e.g. kapilkumaria.com"
+}
