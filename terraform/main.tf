@@ -2,8 +2,7 @@ data "aws_availability_zones" "available" {
   state = "available"
 }
 
-# variable "aws_region" {}
-
+# VPC Module Call
 module "vpc" {
   source     = "./modules/vpc"
   aws_region = var.aws_region
@@ -11,12 +10,14 @@ module "vpc" {
   availability_zones = data.aws_availability_zones.available.names
 }
 
+# IAM Module Call
 module "iam" {
   source       = "./modules/iam"
   project_name = var.project_name
   cluster_name = var.cluster_name
 }
 
+# EKS Module Call
 module "eks" {
   source = "./modules/eks"
   aws_region = var.aws_region
@@ -45,3 +46,34 @@ module "eks" {
     Owner = "kapil"
   }
 }
+
+# Fetch cluster OIDC info
+data "aws_eks_cluster" "cluster" {
+  name = module.eks.cluster_name
+}
+
+# IRSA Module Call
+data "aws_caller_identity" "current" {}
+
+module "irsa" {
+  source = "./modules/irsa"
+
+  cluster_name            = module.eks.cluster_name
+  cluster_oidc_issuer_url = module.eks.cluster_oidc_issuer_url
+  oidc_provider_arn       = module.eks.oidc_provider_arn
+  account_id              = data.aws_caller_identity.current.account_id
+}
+
+# Monitoring Module Call
+module "monitoring" {
+  source = "./modules/monitoring"
+
+  cluster_name = module.eks.cluster_name
+  cluster_endpoint = module.eks.cluster_endpoint
+  cluster_certificate_authority_data = module.eks.cluster_certificate_authority_data
+
+  depends_on = [module.eks] # Ensure EKS is created before Helm chart deployment
+}
+
+
+
