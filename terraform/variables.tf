@@ -48,4 +48,4 @@ variable "vpc_cidr" {
 variable "aws_region" {}
 variable "project_name" {}
 variable "cluster_name" {}
-
+variable "cluster_version" {}
