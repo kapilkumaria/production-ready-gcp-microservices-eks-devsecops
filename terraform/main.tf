@@ -84,4 +84,16 @@ module "irsa_cert_manager" {
   domain                   = var.domain_name   # e.g. "kapilkumaria.com"
 }
 
+# Cert-Manager Module Call
+module "cert_manager" {
+  source       = "./modules/cert-manager"
+  irsa_role_arn = module.irsa_cert_manager.cert_manager_irsa_role_arn  # <-- Uses output from IRSA module
+
+  depends_on = [
+    module.irsa_cert_manager,
+    module.eks
+  ]
+}
+
+
 
