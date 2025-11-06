@@ -44,3 +44,8 @@ variable "vpc_cidr" {
 # variable "key_name" {
 #   default = "kubeadm-aws-key"
 # }
+
+variable "aws_region" {}
+variable "project_name" {}
+variable "cluster_name" {}
+
