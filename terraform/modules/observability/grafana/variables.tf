@@ -23,7 +23,7 @@ variable "grafana_admin_password" {
 
 variable "enable_persistence" {
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "storage_size" {
@@ -33,7 +33,7 @@ variable "storage_size" {
 
 variable "storage_class" {
   type        = string
-  default     = null
+  default     = "gp3"   # Or "gp2", or your custom StorageClass
 }
 
 variable "service_type" {

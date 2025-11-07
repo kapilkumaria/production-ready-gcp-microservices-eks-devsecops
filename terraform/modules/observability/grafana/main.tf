@@ -83,8 +83,9 @@ resource "helm_release" "grafana" {
 
       persistence = {
         enabled = var.enable_persistence
-        # size    = var.storage_size
-        # storageClassName = var.storage_class
+        size    = var.storage_size
+        storageClassName = var.storage_class
+        accessModes      = ["ReadWriteOnce"]
       }
 
       service = {

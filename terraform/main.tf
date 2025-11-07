@@ -140,3 +140,10 @@ module "ebs_csi" {
   oidc_provider_arn = module.eks.oidc_provider_arn
 }
 
+# Storage Module Call
+module "storage" {
+  source = "./modules/storage"  
+}
+
+
+
