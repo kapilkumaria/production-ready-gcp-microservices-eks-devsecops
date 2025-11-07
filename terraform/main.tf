@@ -117,4 +117,26 @@ module "certificate" {
   source = "./modules/certificate"
 }
 
+# Prometheus Module Call
+module "prometheus" {
+  source    = "./modules/observability/prometheus"
+  namespace = "monitoring"
+}
+
+# Grafana Module Call
+module "grafana" {
+  source                 = "./modules/observability/grafana"
+  namespace              = "monitoring"
+  grafana_admin_password = "Kapil123!"
+}
+
+# EBS CSI Module Call
+# EBS CSI (must come before any PVC-using apps)
+module "ebs_csi" {
+  source = "./modules/observability/ebs-csi"
+
+  cluster_name      = module.eks.cluster_name
+  oidc_provider_url = module.eks.cluster_oidc_issuer_url
+  oidc_provider_arn = module.eks.oidc_provider_arn
+}
 
