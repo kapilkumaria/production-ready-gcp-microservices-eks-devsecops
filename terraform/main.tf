@@ -47,6 +47,13 @@ module "eks" {
   }
 }
 
+module "iam_oidc" {
+  source       = "./modules/iam-oidc"
+  cluster_name = module.eks.cluster_name
+  depends_on   = [module.eks]
+}
+
+
 # Fetch cluster OIDC info
 data "aws_eks_cluster" "cluster" {
   name = module.eks.cluster_name
@@ -95,5 +102,19 @@ module "cert_manager" {
   ]
 }
 
+# ClusterIssuer Module Call
+module "clusterissuer" {
+  source = "./modules/clusterissuer"
+
+  email                = "youremail@gmail.com"
+  domain               = var.domain_name
+  route53_zone_id      = module.irsa_cert_manager.zone_id
+  irsa_role_arn        = module.irsa_cert_manager.role_arn
+}
+
+# Certificate Module Call
+module "certificate" {
+  source = "./modules/certificate"
+}
 
 

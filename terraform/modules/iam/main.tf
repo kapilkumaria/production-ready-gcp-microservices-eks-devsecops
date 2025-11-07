@@ -61,24 +61,3 @@ resource "aws_iam_role_policy_attachment" "ecr_readonly_policy" {
   role       = aws_iam_role.eks_node_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
-
-
-## DISABLE THIS UNTIL EKS IS CREATED . . . . . . .
-
-# # IAM OIDC Provider for IRSA
-# # Get cluster details
-data "aws_eks_cluster" "eks" {
-  name = var.cluster_name
-}
-
-# Extract the TLS certificate from issuer URL
-data "tls_certificate" "eks_oidc_thumbprint" {
-  url = data.aws_eks_cluster.eks.identity[0].oidc[0].issuer
-}
-
-# Create IAM OIDC provider
-resource "aws_iam_openid_connect_provider" "oidc" {
-  url             = data.aws_eks_cluster.eks.identity[0].oidc[0].issuer
-  client_id_list  = ["sts.amazonaws.com"]
-  thumbprint_list = [data.tls_certificate.eks_oidc_thumbprint.certificates[0].sha1_fingerprint]
-}

@@ -1,0 +1,49 @@
+apiVersion: acme.cert-manager.io/v1
+kind: Challenge
+metadata:
+  creationTimestamp: "2025-11-07T01:05:42Z"
+  deletionGracePeriodSeconds: 0
+  deletionTimestamp: "2025-11-07T01:06:57Z"
+  
+  generation: 2
+  name: wildcard-kapilkumaria-com-1-907102299-1460663519
+  namespace: default
+  ownerReferences:
+  - apiVersion: acme.cert-manager.io/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: Order
+    name: wildcard-kapilkumaria-com-1-907102299
+    uid: 0c3674f6-bf60-4036-915d-447f8137ef12
+  resourceVersion: "188996"
+  uid: 255c78ce-a94f-46ad-b7a9-a0ecf305822d
+spec:
+  authorizationURL: https://acme-v02.api.letsencrypt.org/acme/authz/2781283576/608904909576
+  dnsName: kapilkumaria.com
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt-production
+  key: lckmUrpZLmRBHrLt0TcT768wIl4K5yY2DZkZYa_ghNs
+  solver:
+    dns01:
+      route53:
+        hostedZoneID: Z0058793HC1B8WCMOEQ4
+        region: us-east-1
+        role: arn:aws:iam::931058976119:role/dev-eks-cluster-certmanager-irsa
+        secretAccessKeySecretRef:
+          name: ""
+    selector:
+      dnsZones:
+      - kapilkumaria.com
+  token: gUYz3mGtF5SfNiMZyY-UoT_zuytSS_Kk3dVJlf-9S1o
+  type: DNS-01
+  url: https://acme-v02.api.letsencrypt.org/acme/chall/2781283576/608904909576/8DVXyA
+  wildcard: true
+status:
+  presented: false
+  processing: true
+  reason: 'error instantiating route53 challenge solver: unable to assume role: operation
+    error STS: AssumeRole, https response error StatusCode: 403, RequestID: 9ab0807a-cb10-4e86-9064-b9814d3ea264,
+    api error AccessDenied: User: arn:aws:sts::931058976119:assumed-role/dev-eks-cluster-certmanager-irsa/1762477970751770502
+    is not authorized to perform: sts:AssumeRole on resource: arn:aws:iam::931058976119:role/dev-eks-cluster-certmanager-irsa'
+  state: pending
