@@ -145,5 +145,13 @@ module "storage" {
   source = "./modules/storage"  
 }
 
+# Loki Module Call
+module "loki" {
+  source    = "./modules/observability/loki"
+  namespace = "monitoring"
+
+  dependency_prometheus    = module.prometheus
+  dependency_storage_class = module.storage
+}
 
 
