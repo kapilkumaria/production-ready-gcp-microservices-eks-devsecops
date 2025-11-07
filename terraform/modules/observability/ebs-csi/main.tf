@@ -62,7 +62,7 @@ resource "helm_release" "ebs_csi_driver" {
 
   set {
     name  = "controller.serviceAccount.create"
-    value = "false"
+    value = "true"
   }
 
   set {
