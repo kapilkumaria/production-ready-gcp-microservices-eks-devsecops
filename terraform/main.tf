@@ -154,4 +154,18 @@ module "loki" {
   dependency_storage_class = module.storage
 }
 
+# Promtail Module Call
+module "promtail" {
+  source             = "./modules/observability/promtail"
+  namespace          = "monitoring"
+  dependency_loki    = module.loki
+}
+
+
+# Kube-State-Metrics Module Call
+module "kube_state_metrics" {
+  source                = "./modules/observability/kube-state-metrics"
+  namespace             = "monitoring"
+  dependency_prometheus = module.prometheus
+}
 
