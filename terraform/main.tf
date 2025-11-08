@@ -179,3 +179,16 @@ module "ingress_nginx" {
     "service.beta.kubernetes.io/aws-load-balancer-scheme" = "internet-facing"
   }
 }
+
+# # Node Exporter Module Call
+# module "node_exporter" {
+#   source    = "./modules/observability/node-exporter"
+#   namespace = "monitoring"
+# }
+
+# Alertmanager Module Call
+module "alertmanager" {
+  source    = "./modules/observability/alertmanager"
+  namespace = "monitoring"
+}
+
