@@ -169,3 +169,13 @@ module "kube_state_metrics" {
   dependency_prometheus = module.prometheus
 }
 
+
+# Ingress-NGINX Module Call
+module "ingress_nginx" {
+  source = "./modules/ingress-nginx"
+
+  service_annotations = {
+    "service.beta.kubernetes.io/aws-load-balancer-type"   = "nlb"
+    "service.beta.kubernetes.io/aws-load-balancer-scheme" = "internet-facing"
+  }
+}

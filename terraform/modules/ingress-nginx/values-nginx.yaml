@@ -1,0 +1,28 @@
+controller:
+  replicaCount: 2
+
+  service:
+    type: LoadBalancer
+    externalTrafficPolicy: Cluster
+    annotations: {}
+
+  admissionWebhooks:
+    enabled: true
+
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
+  ingressClassResource:
+    name: nginx
+    enabled: true
+    default: true
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi
