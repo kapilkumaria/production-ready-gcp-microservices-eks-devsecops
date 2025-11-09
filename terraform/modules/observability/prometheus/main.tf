@@ -53,9 +53,9 @@ resource "helm_release" "prometheus_stack" {
 #########################################
 # 4. (Optional) Output Prometheus Endpoint & Namespace
 #########################################
-output "prometheus_namespace" {
-  value = kubernetes_namespace.monitoring.metadata[0].name
-}
+# output "prometheus_namespace" {
+#   value = kubernetes_namespace.monitoring.metadata[0].name
+# }
 
 output "prometheus_helm_status" {
   value = helm_release.prometheus_stack.status
