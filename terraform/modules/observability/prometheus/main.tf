@@ -34,21 +34,17 @@ resource "helm_release" "prometheus_stack" {
   name       = "kube-prometheus-stack"
   repository = "https://prometheus-community.github.io/helm-charts"
   chart      = "kube-prometheus-stack"
-  version    =  var.chart_version
-
+  version    = var.chart_version
   namespace  = kubernetes_namespace.monitoring.metadata[0].name
 
-  # Ensure values.yaml exists in this module folder
-  values = [
-    file("${path.module}/values.yaml")
-  ]
+  values = [ file("${path.module}/values.yaml") ]
 
-  # This makes sure the namespace exists before installation
   depends_on = [
     kubernetes_namespace.monitoring,
     kubernetes_service_account.prometheus
   ]
 }
+
 
 #########################################
 # 4. (Optional) Output Prometheus Endpoint & Namespace
