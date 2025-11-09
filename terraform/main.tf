@@ -212,15 +212,15 @@ module "grafana_ingress" {
 #   domain = var.domain_name
 # }
 
-module "prometheus_ingress" {
-  source = "./modules/observability/prometheus-ingress"
-  domain = var.domain_name
-}
+# module "prometheus_ingress" {
+#   source = "./modules/observability/prometheus-ingress"
+#   domain = var.domain_name
+# }
 
-module "alertmanager_ingress" {
-  source = "./modules/observability/alertmanager"
-  domain = var.domain_name
-}
+# module "alertmanager_ingress" {
+#   source = "./modules/observability/alertmanager"
+#   domain = var.domain_name
+# }
 
 # Root placeholder ingress (optional, until your app is ready)
 module "root_ingress" {
