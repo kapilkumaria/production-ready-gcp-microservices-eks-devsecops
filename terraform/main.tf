@@ -121,6 +121,7 @@ module "certificate" {
 module "prometheus" {
   source    = "./modules/observability/prometheus"
   namespace = "monitoring"
+  domain = var.domain_name
 }
 
 # Grafana Module Call
@@ -128,6 +129,7 @@ module "grafana" {
   source                 = "./modules/observability/grafana"
   namespace              = "monitoring"
   grafana_admin_password = "Kapil123!"
+  domain = var.domain_name
 }
 
 # EBS CSI Module Call
@@ -190,5 +192,55 @@ module "ingress_nginx" {
 module "alertmanager" {
   source    = "./modules/observability/alertmanager"
   namespace = "monitoring"
+  domain = var.domain_name
 }
+
+# Ingresses already live under their respective modules (as shown above)
+module "grafana_ingress" {
+  source = "./modules/observability/grafana"
+  domain = var.domain_name
+  grafana_admin_password = "Kapil123!"
+}
+
+# module "prometheus_ingress" {
+#   source = "./modules/observability/prometheus"
+#   # domain = var.domain_name
+# }
+
+# module "prometheus_ingress" {
+#   source = "./modules/observability/prometheus/ingress"
+#   domain = var.domain_name
+# }
+
+module "prometheus_ingress" {
+  source = "./modules/observability/prometheus-ingress"
+  domain = var.domain_name
+}
+
+module "alertmanager_ingress" {
+  source = "./modules/observability/alertmanager"
+  domain = var.domain_name
+}
+
+# Root placeholder ingress (optional, until your app is ready)
+module "root_ingress" {
+  source = "./modules/root-ingress" # (if you split it) — or keep inline in root
+  domain = var.domain_name
+}
+
+# Route53
+module "route53" {
+  source            = "./modules/route53"
+  hosted_zone_id    = module.irsa_cert_manager.zone_id  # you already output zone id there
+  domain            = var.domain_name                   # "kapilkumaria.com"
+  create_apex_alias = true
+  # Set after you fetch it (see command above). For first run you can leave "" to skip apex record.
+  nlb_hosted_zone_id = var.nlb_hosted_zone_id
+}
+
+# # Root Ingress Module Call
+# module "root_ingress" {
+#   source = "./modules/root-ingress"
+#   domain = var.domain_name   # domain_name should be "kapilkumaria.com"
+# }
 

@@ -9,3 +9,5 @@ variable "chart_version" {
   type        = string
   default     = "65.1.0" # Adjust to latest stable if needed
 }
+
+variable "domain" {}
