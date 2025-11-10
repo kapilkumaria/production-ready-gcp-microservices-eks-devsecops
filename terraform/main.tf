@@ -4,9 +4,9 @@ data "aws_availability_zones" "available" {
 
 # VPC Module Call
 module "vpc" {
-  source     = "./modules/vpc"
-  aws_region = var.aws_region
-  vpc_cidr   = var.vpc_cidr
+  source             = "./modules/vpc"
+  aws_region         = var.aws_region
+  vpc_cidr           = var.vpc_cidr
   availability_zones = data.aws_availability_zones.available.names
 }
 
@@ -19,17 +19,17 @@ module "iam" {
 
 # EKS Module Call
 module "eks" {
-  source = "./modules/eks"
+  source     = "./modules/eks"
   aws_region = var.aws_region
 
-  project_name   = var.project_name
-  environment    = var.environment
+  project_name = var.project_name
+  environment  = var.environment
 
-  cluster_name       = var.cluster_name
-  cluster_version    = var.cluster_version
-  cluster_role_arn   = module.iam.eks_cluster_role_arn
-  node_role_arn      = module.iam.eks_node_role_arn
-  subnet_ids         = module.vpc.private_subnet_ids
+  cluster_name     = var.cluster_name
+  cluster_version  = var.cluster_version
+  cluster_role_arn = module.iam.eks_cluster_role_arn
+  node_role_arn    = module.iam.eks_node_role_arn
+  subnet_ids       = module.vpc.private_subnet_ids
 
   # Endpoint access strategy
   endpoint_public_access  = true
@@ -75,8 +75,8 @@ module "irsa" {
 module "monitoring" {
   source = "./modules/monitoring"
 
-  cluster_name = module.eks.cluster_name
-  cluster_endpoint = module.eks.cluster_endpoint
+  cluster_name                       = module.eks.cluster_name
+  cluster_endpoint                   = module.eks.cluster_endpoint
   cluster_certificate_authority_data = module.eks.cluster_certificate_authority_data
 
   depends_on = [module.eks] # Ensure EKS is created before Helm chart deployment
@@ -86,15 +86,15 @@ module "monitoring" {
 module "irsa_cert_manager" {
   source = "./modules/irsa-cert-manager"
 
-  cluster_name              = module.eks.cluster_name
-  cluster_oidc_issuer_url  = module.eks.cluster_oidc_issuer_url
-  domain                   = var.domain_name   # e.g. "kapilkumaria.com"
+  cluster_name            = module.eks.cluster_name
+  cluster_oidc_issuer_url = module.eks.cluster_oidc_issuer_url
+  domain                  = var.domain_name # e.g. "kapilkumaria.com"
 }
 
 # Cert-Manager Module Call
 module "cert_manager" {
-  source       = "./modules/cert-manager"
-  irsa_role_arn = module.irsa_cert_manager.cert_manager_irsa_role_arn  # <-- Uses output from IRSA module
+  source        = "./modules/cert-manager"
+  irsa_role_arn = module.irsa_cert_manager.cert_manager_irsa_role_arn # <-- Uses output from IRSA module
 
   depends_on = [
     module.irsa_cert_manager,
@@ -106,10 +106,10 @@ module "cert_manager" {
 module "clusterissuer" {
   source = "./modules/clusterissuer"
 
-  email                = "youremail@gmail.com"
-  domain               = var.domain_name
-  route53_zone_id      = module.irsa_cert_manager.zone_id
-  irsa_role_arn        = module.irsa_cert_manager.role_arn
+  email           = "youremail@gmail.com"
+  domain          = var.domain_name
+  route53_zone_id = module.irsa_cert_manager.zone_id
+  irsa_role_arn   = module.irsa_cert_manager.role_arn
 }
 
 # Certificate Module Call
@@ -121,7 +121,7 @@ module "certificate" {
 module "prometheus" {
   source    = "./modules/observability/prometheus"
   namespace = "monitoring"
-  domain = var.domain_name
+  domain    = var.domain_name
 }
 
 # Grafana Module Call
@@ -144,7 +144,7 @@ module "ebs_csi" {
 
 # Storage Module Call
 module "storage" {
-  source = "./modules/storage"  
+  source = "./modules/storage"
 }
 
 # Loki Module Call
@@ -158,9 +158,9 @@ module "loki" {
 
 # Promtail Module Call
 module "promtail" {
-  source             = "./modules/observability/promtail"
-  namespace          = "monitoring"
-  dependency_loki    = module.loki
+  source          = "./modules/observability/promtail"
+  namespace       = "monitoring"
+  dependency_loki = module.loki
 }
 
 
@@ -231,8 +231,8 @@ module "root_ingress" {
 # Route53
 module "route53" {
   source            = "./modules/route53"
-  hosted_zone_id    = module.irsa_cert_manager.zone_id  # you already output zone id there
-  domain            = var.domain_name                   # "kapilkumaria.com"
+  hosted_zone_id    = module.irsa_cert_manager.zone_id # you already output zone id there
+  domain            = var.domain_name                  # "kapilkumaria.com"
   create_apex_alias = true
   # Set after you fetch it (see command above). For first run you can leave "" to skip apex record.
   nlb_hosted_zone_id = var.nlb_hosted_zone_id
@@ -247,7 +247,7 @@ module "route53" {
 # Alertmanager Ingress Module Call
 module "alertmanager_ingress" {
   source = "./modules/observability/alertmanager-ingress"
-  domain = var.domain_name   # Make sure your main.tf uses var.domain_name
+  domain = var.domain_name # Make sure your main.tf uses var.domain_name
 }
 
 module "grafana_ingress" {
@@ -272,4 +272,15 @@ resource "kubernetes_manifest" "delete_old_bad_certificate" {
   }
 
   lifecycle { ignore_changes = all }
+}
+
+module "argocd" {
+  source                  = "./modules/argocd"
+  namespace               = "argocd"
+  domain                  = var.domain_name
+  cluster_issuer_name     = "letsencrypt-production" # currently points to staging in your env
+  certificate_secret_name = "wildcard-kapilkumaria-com-tls"
+
+  # You can also pass helm_chart_version if you want a specific one
+  # helm_chart_version = "6.9.3"
 }
