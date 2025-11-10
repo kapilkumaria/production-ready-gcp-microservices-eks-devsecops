@@ -1,11 +1,12 @@
-# Prometheus Ingress (Terraform-managed)
-resource "kubernetes_ingress_v1" "prometheus" {
+# Alertmanager Ingress
+resource "kubernetes_ingress_v1" "alertmanager" {
   metadata {
-    name      = "prometheus"
+    name      = "alertmanager"
     namespace = "monitoring"
 
     annotations = {
       "kubernetes.io/ingress.class"              = "nginx"
+      # IMPORTANT: must match your ClusterIssuer resource name
       # "cert-manager.io/cluster-issuer"           = "letsencrypt-production"
       "nginx.ingress.kubernetes.io/ssl-redirect" = "true"
     }
@@ -13,7 +14,7 @@ resource "kubernetes_ingress_v1" "prometheus" {
 
   spec {
     rule {
-      host = "prometheus.${var.domain}"
+      host = "alertmanager.${var.domain}"
 
       http {
         path {
@@ -22,8 +23,9 @@ resource "kubernetes_ingress_v1" "prometheus" {
 
           backend {
             service {
-              name = var.prometheus_service_name
-              port { number = var.prometheus_service_port }
+              # Confirm via: kubectl get svc -n monitoring | grep alertmanager
+              name = var.alertmanager_service_name
+              port { number = var.alertmanager_service_port }
             }
           }
         }
@@ -31,7 +33,7 @@ resource "kubernetes_ingress_v1" "prometheus" {
     }
 
     tls {
-      hosts       = ["prometheus.${var.domain}"]
+      hosts       = ["alertmanager.${var.domain}"]
       secret_name = var.certificate_secret_name
     }
   }

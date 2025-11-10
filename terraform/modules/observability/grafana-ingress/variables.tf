@@ -1,7 +1,3 @@
-# variable "domain" {
-#   type = string
-# }
-
 variable "domain" {
   description = "Base domain (e.g., kapilkumaria.com)"
   type        = string
@@ -13,14 +9,14 @@ variable "certificate_secret_name" {
   default     = "wildcard-kapilkumaria-com-tls"
 }
 
-variable "prometheus_service_name" {
-  description = "K8s Service name for Prometheus"
+variable "grafana_service_name" {
+  description = "K8s Service name for Grafana"
   type        = string
-  default     = "kube-prometheus-stack-prometheus"
+  default     = "kube-prometheus-stack-grafana"
 }
 
-variable "prometheus_service_port" {
-  description = "Service port for Prometheus"
+variable "grafana_service_port" {
+  description = "Service port for Grafana"
   type        = number
-  default     = 9090
+  default     = 80
 }

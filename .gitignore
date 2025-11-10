@@ -100,3 +100,6 @@ backend.tf
 # BFG Cleaner files
 bfg.jar
 .bfg-report/
+
+
+current-plan.tfplan

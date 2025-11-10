@@ -11,12 +11,6 @@ terraform {
   }
 }
 
-# resource "kubernetes_namespace" "monitoring" {
-#   metadata {
-#     name = var.namespace
-#   }
-# }
-
 # Create Secret from alertmanager yaml
 resource "kubernetes_secret" "alertmanager_config" {
   metadata {

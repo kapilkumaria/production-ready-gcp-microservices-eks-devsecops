@@ -1,7 +1,7 @@
-# Prometheus Ingress (Terraform-managed)
-resource "kubernetes_ingress_v1" "prometheus" {
+# Grafana Ingress (Terraform-managed)
+resource "kubernetes_ingress_v1" "grafana" {
   metadata {
-    name      = "prometheus"
+    name      = "grafana"
     namespace = "monitoring"
 
     annotations = {
@@ -13,7 +13,7 @@ resource "kubernetes_ingress_v1" "prometheus" {
 
   spec {
     rule {
-      host = "prometheus.${var.domain}"
+      host = "grafana.${var.domain}"
 
       http {
         path {
@@ -22,8 +22,8 @@ resource "kubernetes_ingress_v1" "prometheus" {
 
           backend {
             service {
-              name = var.prometheus_service_name
-              port { number = var.prometheus_service_port }
+              name = var.grafana_service_name
+              port { number = var.grafana_service_port }
             }
           }
         }
@@ -31,7 +31,7 @@ resource "kubernetes_ingress_v1" "prometheus" {
     }
 
     tls {
-      hosts       = ["prometheus.${var.domain}"]
+      hosts       = ["grafana.${var.domain}"]
       secret_name = var.certificate_secret_name
     }
   }

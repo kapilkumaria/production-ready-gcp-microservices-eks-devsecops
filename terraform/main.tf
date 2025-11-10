@@ -129,7 +129,7 @@ module "grafana" {
   source                 = "./modules/observability/grafana"
   namespace              = "monitoring"
   grafana_admin_password = "Kapil123!"
-  domain = var.domain_name
+  # domain = var.domain_name
 }
 
 # EBS CSI Module Call
@@ -192,15 +192,15 @@ module "ingress_nginx" {
 module "alertmanager" {
   source    = "./modules/observability/alertmanager"
   namespace = "monitoring"
-  domain = var.domain_name
+  # domain = var.domain_name
 }
 
 # Ingresses already live under their respective modules (as shown above)
-module "grafana_ingress" {
-  source = "./modules/observability/grafana"
-  domain = var.domain_name
-  grafana_admin_password = "Kapil123!"
-}
+# module "grafana_ingress" {
+#   source = "./modules/observability/grafana"
+#   domain = var.domain_name
+#   grafana_admin_password = "Kapil123!"
+# }
 
 # module "prometheus_ingress" {
 #   source = "./modules/observability/prometheus"
@@ -244,3 +244,32 @@ module "route53" {
 #   domain = var.domain_name   # domain_name should be "kapilkumaria.com"
 # }
 
+# Alertmanager Ingress Module Call
+module "alertmanager_ingress" {
+  source = "./modules/observability/alertmanager-ingress"
+  domain = var.domain_name   # Make sure your main.tf uses var.domain_name
+}
+
+module "grafana_ingress" {
+  source = "./modules/observability/grafana-ingress"
+  domain = var.domain_name
+}
+
+
+module "prometheus_ingress" {
+  source = "./modules/observability/prometheus-ingress"
+  domain = var.domain_name
+}
+
+resource "kubernetes_manifest" "delete_old_bad_certificate" {
+  manifest = {
+    apiVersion = "cert-manager.io/v1"
+    kind       = "Certificate"
+    metadata = {
+      name      = "wildcard-kapilkumaria-com-tls"
+      namespace = "monitoring"
+    }
+  }
+
+  lifecycle { ignore_changes = all }
+}

@@ -1,7 +1,3 @@
-# variable "domain" {
-#   type = string
-# }
-
 variable "domain" {
   description = "Base domain (e.g., kapilkumaria.com)"
   type        = string
@@ -13,14 +9,14 @@ variable "certificate_secret_name" {
   default     = "wildcard-kapilkumaria-com-tls"
 }
 
-variable "prometheus_service_name" {
-  description = "K8s Service name for Prometheus"
+variable "alertmanager_service_name" {
+  description = "K8s Service name for Alertmanager UI"
   type        = string
-  default     = "kube-prometheus-stack-prometheus"
+  default     = "kube-prometheus-stack-alertmanager"
 }
 
-variable "prometheus_service_port" {
-  description = "Service port for Prometheus"
+variable "alertmanager_service_port" {
+  description = "Service port for Alertmanager UI"
   type        = number
-  default     = 9090
+  default     = 9093
 }
