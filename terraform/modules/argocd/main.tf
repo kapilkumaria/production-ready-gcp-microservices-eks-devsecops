@@ -16,53 +16,38 @@ resource "kubernetes_namespace" "this" {
   metadata {
     name = var.namespace
     labels = {
-      "app.kubernetes.io/name"      = "argocd"
-      "app.kubernetes.io/managed-by"= "terraform"
+      "app.kubernetes.io/name"       = "argocd"
+      "app.kubernetes.io/managed-by" = "terraform"
     }
   }
 }
 
-# 2) Wildcard certificate in *argocd* namespace (staging for now)
-#    Uses the same ClusterIssuer name you already have
-resource "kubernetes_manifest" "argocd_wildcard_certificate" {
-  manifest = {
-    apiVersion = "cert-manager.io/v1"
-    kind       = "Certificate"
-    metadata = {
-      name      = "wildcard-${replace(var.domain, ".", "-")}"
-      namespace = var.namespace
-    }
-    spec = {
-      secretName = var.certificate_secret_name
-      dnsNames   = [
-        var.domain,
-        "*.${var.domain}",
-      ]
-      issuerRef = {
-        name = var.cluster_issuer_name
-        kind = "ClusterIssuer"
-      }
-    }
-  }
-
-  depends_on = [
-    kubernetes_namespace.this
-  ]
-}
-
+# 2) Install Argo CD via Helm
 resource "helm_release" "argocd" {
-  name       = "argocd"
-  repository = "https://argoproj.github.io/argo-helm"
-  chart      = "argo-cd"
-  version    = var.helm_chart_version
-  namespace  = var.namespace
+  name             = "argocd"
+  repository       = "https://argoproj.github.io/argo-helm"
+  chart            = "argo-cd"
+  version          = var.helm_chart_version
+  namespace        = var.namespace
   create_namespace = false
+  timeout          = 600
 
-  # We terminate TLS at NGINX; ArgoCD runs --insecure behind it on HTTP (port 80).
-  # Ingress uses your wildcard cert secret in *argocd* namespace.
+  # Disable DEX for simplicity
   set {
-    name  = "server.insecure"
+    name  = "dex.enabled"
+    value = "false"
+  }
+
+  # Keep Redis enabled
+  set {
+    name  = "redis.enabled"
     value = "true"
+  }
+
+  # Enable ingress - we'll manage details in argocd-ingress module
+  set {
+    name  = "server.ingress.enabled"
+    value = "false"
   }
 
   set {
@@ -76,52 +61,36 @@ resource "helm_release" "argocd" {
   }
 
   set {
-    name  = "server.ingress.enabled"
+    name  = "server.insecure"
     value = "true"
   }
 
-  # NGINX ingress class
-  set {
-    name  = "server.ingress.ingressClassName"
-    value = "nginx"
-  }
-
-  # Host: argocd.yourdomain
-  set {
-    name  = "server.ingress.hosts[0]"
-    value = "argocd.${var.domain}"
-  }
-
-  # TLS config for the ingress
-  set {
-    name  = "server.ingress.tls[0].hosts[0]"
-    value = "argocd.${var.domain}"
-  }
-  set {
-    name  = "server.ingress.tls[0].secretName"
-    value = var.certificate_secret_name
-  }
-
-  # Harden some defaults
-  set {
-    name  = "dex.enabled"
-    value = "false"
-  }
-  set {
-    name  = "redis.enabled"
-    value = "true"
-  }
-
-  # Tolerate chart upgrades smoothly
-  timeout = 600
-
-  depends_on = [
-    kubernetes_namespace.this,
-    kubernetes_manifest.argocd_wildcard_certificate
-  ]
+  depends_on = [kubernetes_namespace.this]
 }
 
-# 4) (Optional) Basic, empty AppProject to start cleanly organizing apps
+# 3) Wait for CRDs to be ready (AppProject, Application, etc.)
+resource "null_resource" "wait_for_argocd_crds" {
+  provisioner "local-exec" {
+    command = <<EOT
+      echo "⏳ Waiting for ArgoCD CRDs to become available..."
+      for i in {1..30}; do
+        if kubectl get crd appprojects.argoproj.io &>/dev/null; then
+          echo "✅ ArgoCD CRDs are ready."
+          exit 0
+        fi
+        echo "Waiting for CRDs... attempt $i/30"
+        sleep 10
+      done
+      echo "❌ Timeout waiting for ArgoCD CRDs to be installed."
+      exit 1
+    EOT
+    interpreter = ["/bin/bash", "-c"]
+  }
+
+  depends_on = [helm_release.argocd]
+}
+
+# 4) Default Argo CD Project (applied only after CRDs exist)
 resource "kubernetes_manifest" "default_project" {
   manifest = {
     apiVersion = "argoproj.io/v1alpha1"
@@ -142,14 +111,13 @@ resource "kubernetes_manifest" "default_project" {
           server    = "https://kubernetes.default.svc"
         }
       ]
-      clusterResourceWhitelist = [
-        { group = "*", kind = "*" }
-      ]
-      namespaceResourceWhitelist = [
-        { group = "*", kind = "*" }
-      ]
+      clusterResourceWhitelist = [{ group = "*", kind = "*" }]
+      namespaceResourceWhitelist = [{ group = "*", kind = "*" }]
     }
   }
 
-  depends_on = [helm_release.argocd]
+  depends_on = [
+    null_resource.wait_for_argocd_crds,
+    helm_release.argocd
+  ]
 }

@@ -275,12 +275,18 @@ resource "kubernetes_manifest" "delete_old_bad_certificate" {
 }
 
 module "argocd" {
-  source                  = "./modules/argocd"
-  namespace               = "argocd"
-  domain                  = var.domain_name
-  cluster_issuer_name     = "letsencrypt-production" # currently points to staging in your env
-  certificate_secret_name = "wildcard-kapilkumaria-com-tls"
-
-  # You can also pass helm_chart_version if you want a specific one
-  # helm_chart_version = "6.9.3"
+  source              = "./modules/argocd"
+  namespace           = "argocd"
+  helm_chart_version  = "6.9.3"
+  domain = var.domain_name
 }
+
+module "argocd_ingress" {
+  source      = "./modules/argocd-ingress"
+  namespace   = "argocd"
+  domain      = "kapilkumaria.com"
+  depends_on  = [module.argocd]
+}
+
+
+
