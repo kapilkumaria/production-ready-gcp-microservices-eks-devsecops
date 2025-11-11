@@ -60,10 +60,16 @@ resource "helm_release" "argocd" {
     value = "80"
   }
 
+  # set {
+  #   name  = "server.insecure"
+  #   value = "true"
+  # }
+
   set {
-    name  = "server.insecure"
-    value = "true"
+  name  = "configs.params.server.insecure"
+  value = "false"
   }
+
 
   depends_on = [kubernetes_namespace.this]
 }
