@@ -1,14 +1,14 @@
 #########################################
 # 1. Create Monitoring Namespace
 #########################################
-resource "kubernetes_namespace" "monitoring" {
-  metadata {
-    name = "monitoring"
-    labels = {
-      "app.kubernetes.io/name" = "monitoring"
-    }
-  }
-}
+# resource "kubernetes_namespace" "monitoring" {
+#   metadata {
+#     name = "monitoring"
+#     labels = {
+#       "app.kubernetes.io/name" = "monitoring"
+#     }
+#   }
+# }
 
 #########################################
 # 2. Create Service Account for Prometheus (optional but recommended)
@@ -16,7 +16,7 @@ resource "kubernetes_namespace" "monitoring" {
 resource "kubernetes_service_account" "prometheus" {
   metadata {
     name      = "prometheus"
-    namespace = kubernetes_namespace.monitoring.metadata[0].name
+    namespace = var.namespace
     labels = {
       "app.kubernetes.io/name" = "prometheus"
     }
@@ -24,7 +24,7 @@ resource "kubernetes_service_account" "prometheus" {
 
   automount_service_account_token = true
 
-  depends_on = [kubernetes_namespace.monitoring]
+  depends_on = [var.namespace]
 }
 
 #########################################
@@ -35,12 +35,12 @@ resource "helm_release" "prometheus_stack" {
   repository = "https://prometheus-community.github.io/helm-charts"
   chart      = "kube-prometheus-stack"
   version    = var.chart_version
-  namespace  = kubernetes_namespace.monitoring.metadata[0].name
+  namespace  = var.namespace
 
   values = [ file("${path.module}/values.yaml") ]
 
   depends_on = [
-    kubernetes_namespace.monitoring,
+    var.namespace,
     kubernetes_service_account.prometheus
   ]
 }

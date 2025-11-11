@@ -1,3 +1,5 @@
+# Main Terraform configuration file for AWS EKS cluster with monitoring and ingress setup
+
 data "aws_availability_zones" "available" {
   state = "available"
 }
@@ -36,7 +38,7 @@ module "eks" {
   endpoint_private_access = false
 
   # Node group config
-  instance_types = ["t3.medium"]
+  instance_types = ["t3.large"]
   disk_size      = 20
   desired_size   = 2
   min_size       = 2
@@ -182,12 +184,6 @@ module "ingress_nginx" {
   }
 }
 
-# # Node Exporter Module Call
-# module "node_exporter" {
-#   source    = "./modules/observability/node-exporter"
-#   namespace = "monitoring"
-# }
-
 # Alertmanager Module Call
 module "alertmanager" {
   source    = "./modules/observability/alertmanager"
@@ -195,40 +191,13 @@ module "alertmanager" {
   # domain = var.domain_name
 }
 
-# Ingresses already live under their respective modules (as shown above)
-# module "grafana_ingress" {
-#   source = "./modules/observability/grafana"
-#   domain = var.domain_name
-#   grafana_admin_password = "Kapil123!"
-# }
-
-# module "prometheus_ingress" {
-#   source = "./modules/observability/prometheus"
-#   # domain = var.domain_name
-# }
-
-# module "prometheus_ingress" {
-#   source = "./modules/observability/prometheus/ingress"
-#   domain = var.domain_name
-# }
-
-# module "prometheus_ingress" {
-#   source = "./modules/observability/prometheus-ingress"
-#   domain = var.domain_name
-# }
-
-# module "alertmanager_ingress" {
-#   source = "./modules/observability/alertmanager"
-#   domain = var.domain_name
-# }
-
 # Root placeholder ingress (optional, until your app is ready)
 module "root_ingress" {
   source = "./modules/root-ingress" # (if you split it) — or keep inline in root
   domain = var.domain_name
 }
 
-# Route53
+# Route53 Module Call
 module "route53" {
   source            = "./modules/route53"
   hosted_zone_id    = module.irsa_cert_manager.zone_id # you already output zone id there
@@ -238,29 +207,25 @@ module "route53" {
   nlb_hosted_zone_id = var.nlb_hosted_zone_id
 }
 
-# # Root Ingress Module Call
-# module "root_ingress" {
-#   source = "./modules/root-ingress"
-#   domain = var.domain_name   # domain_name should be "kapilkumaria.com"
-# }
-
 # Alertmanager Ingress Module Call
 module "alertmanager_ingress" {
   source = "./modules/observability/alertmanager-ingress"
   domain = var.domain_name # Make sure your main.tf uses var.domain_name
 }
 
+# Grafana Ingress Module Call
 module "grafana_ingress" {
   source = "./modules/observability/grafana-ingress"
   domain = var.domain_name
 }
 
-
+# Prometheus Ingress Module Call
 module "prometheus_ingress" {
   source = "./modules/observability/prometheus-ingress"
   domain = var.domain_name
 }
 
+# Delete Old Bad Certificate
 resource "kubernetes_manifest" "delete_old_bad_certificate" {
   manifest = {
     apiVersion = "cert-manager.io/v1"
@@ -274,6 +239,7 @@ resource "kubernetes_manifest" "delete_old_bad_certificate" {
   lifecycle { ignore_changes = all }
 }
 
+# Argo CD Module Call
 module "argocd" {
   source              = "./modules/argocd"
   namespace           = "argocd"
@@ -281,6 +247,7 @@ module "argocd" {
   domain = var.domain_name
 }
 
+# Argo CD Ingress Module Call
 module "argocd_ingress" {
   source      = "./modules/argocd-ingress"
   namespace   = "argocd"
@@ -288,5 +255,12 @@ module "argocd_ingress" {
   depends_on  = [module.argocd]
 }
 
-
+# Argo CD Application for NGINX Sample App
+module "argocd_app_nginx" {
+  source           = "./modules/argocd-app-nginx"
+  repo_url         = "https://github.com/KkInTech15/production-ready-gcp-microservices-eks-devsecops.git"
+  target_revision  = "main"
+  app_path         = "manifests/nginx-app"
+  depends_upon     = [module.argocd]
+}
 

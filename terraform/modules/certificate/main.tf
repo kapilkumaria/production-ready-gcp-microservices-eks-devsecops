@@ -1,3 +1,13 @@
+# Create the monitoring namespace
+resource "kubernetes_namespace" "monitoring" {
+  metadata {
+    name = "monitoring"
+    labels = {
+      name = "monitoring"
+    }
+  }
+}
+
 resource "kubernetes_manifest" "wildcard_certificate" {
   manifest = {
     apiVersion = "cert-manager.io/v1"

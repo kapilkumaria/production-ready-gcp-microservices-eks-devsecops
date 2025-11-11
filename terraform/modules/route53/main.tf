@@ -34,6 +34,15 @@ resource "aws_route53_record" "alertmanager" {
   records = [local.lb_hostname]
 }
 
+resource "aws_route53_record" "argocd" {
+  zone_id = var.hosted_zone_id
+  name    = "argocd.${var.domain}"
+  type    = "CNAME"
+  ttl     = 60
+  records = [local.lb_hostname]
+}
+
+
 # Optional: apex ALIAS (recommended)
 resource "aws_route53_record" "apex" {
   count   = var.create_apex_alias && var.nlb_hosted_zone_id != "" ? 1 : 0

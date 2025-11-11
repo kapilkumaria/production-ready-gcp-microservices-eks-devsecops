@@ -90,34 +90,34 @@ resource "null_resource" "wait_for_argocd_crds" {
   depends_on = [helm_release.argocd]
 }
 
-# 4) Default Argo CD Project (applied only after CRDs exist)
-resource "kubernetes_manifest" "default_project" {
-  manifest = {
-    apiVersion = "argoproj.io/v1alpha1"
-    kind       = "AppProject"
-    metadata = {
-      name      = "default"
-      namespace = var.namespace
-      labels = {
-        "app.kubernetes.io/managed-by" = "terraform"
-      }
-    }
-    spec = {
-      description = "Default project"
-      sourceRepos = ["*"]
-      destinations = [
-        {
-          namespace = "*"
-          server    = "https://kubernetes.default.svc"
-        }
-      ]
-      clusterResourceWhitelist = [{ group = "*", kind = "*" }]
-      namespaceResourceWhitelist = [{ group = "*", kind = "*" }]
-    }
-  }
+# # 4) Default Argo CD Project (applied only after CRDs exist)
+# resource "kubernetes_manifest" "default_project" {
+#   manifest = {
+#     apiVersion = "argoproj.io/v1alpha1"
+#     kind       = "AppProject"
+#     metadata = {
+#       name      = "default"
+#       namespace = var.namespace
+#       labels = {
+#         "app.kubernetes.io/managed-by" = "terraform"
+#       }
+#     }
+#     spec = {
+#       description = "Default project"
+#       sourceRepos = ["*"]
+#       destinations = [
+#         {
+#           namespace = "*"
+#           server    = "https://kubernetes.default.svc"
+#         }
+#       ]
+#       clusterResourceWhitelist = [{ group = "*", kind = "*" }]
+#       namespaceResourceWhitelist = [{ group = "*", kind = "*" }]
+#     }
+#   }
 
-  depends_on = [
-    null_resource.wait_for_argocd_crds,
-    helm_release.argocd
-  ]
-}
+#   depends_on = [
+#     null_resource.wait_for_argocd_crds,
+#     helm_release.argocd
+#   ]
+# }

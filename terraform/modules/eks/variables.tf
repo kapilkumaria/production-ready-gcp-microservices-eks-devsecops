@@ -56,7 +56,7 @@ variable "endpoint_private_access" {
 variable "instance_types" {
   description = "Instance types for the node group"
   type        = list(string)
-  default     = ["t3.medium"]
+  default     = ["t3.large"]
 }
 
 variable "disk_size" {
@@ -68,19 +68,19 @@ variable "disk_size" {
 variable "desired_size" {
   description = "Desired node count for the node group"
   type        = number
-  default     = 2
+  default     = 3
 }
 
 variable "min_size" {
   description = "Minimum node count for the node group"
   type        = number
-  default     = 2
+  default     = 3
 }
 
 variable "max_size" {
   description = "Maximum node count for the node group"
   type        = number
-  default     = 4
+  default     = 5
 }
 
 variable "tags" {
