@@ -7,6 +7,17 @@ terraform {
   }
 }
 
+# Create the demo namespace
+resource "kubernetes_namespace" "demo" {
+  metadata {
+    name = var.app_namespace
+    labels = {
+      "app.kubernetes.io/managed-by" = "terraform"
+      "app.kubernetes.io/name"       = "demo"
+    }
+  }
+}
+
 # Create Argo CD Application for NGINX sample app
 resource "kubernetes_manifest" "nginx_app" {
   manifest = {
@@ -45,5 +56,5 @@ resource "kubernetes_manifest" "nginx_app" {
     }
   }
 
-  depends_on = [var.depends_upon]
+  depends_on = [kubernetes_namespace.demo, var.depends_upon]
 }

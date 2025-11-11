@@ -6,6 +6,12 @@ controller:
     externalTrafficPolicy: Cluster
     annotations: {}
 
+  config:
+    # Add these for better ALB compatibility
+    use-forwarded-headers: "true"
+    compute-full-forwarded-for: "true"
+    use-proxy-protocol: "false"
+
   admissionWebhooks:
     enabled: true
 

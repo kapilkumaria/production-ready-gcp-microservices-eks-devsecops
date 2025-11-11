@@ -179,7 +179,7 @@ module "ingress_nginx" {
   source = "./modules/ingress-nginx"
 
   service_annotations = {
-    "service.beta.kubernetes.io/aws-load-balancer-type"   = "nlb"
+    "service.beta.kubernetes.io/aws-load-balancer-type"   = "alb"
     "service.beta.kubernetes.io/aws-load-balancer-scheme" = "internet-facing"
   }
 }
@@ -225,19 +225,19 @@ module "prometheus_ingress" {
   domain = var.domain_name
 }
 
-# Delete Old Bad Certificate
-resource "kubernetes_manifest" "delete_old_bad_certificate" {
-  manifest = {
-    apiVersion = "cert-manager.io/v1"
-    kind       = "Certificate"
-    metadata = {
-      name      = "wildcard-kapilkumaria-com-tls"
-      namespace = "monitoring"
-    }
-  }
+# # Delete Old Bad Certificate
+# resource "kubernetes_manifest" "delete_old_bad_certificate" {
+#   manifest = {
+#     apiVersion = "cert-manager.io/v1"
+#     kind       = "Certificate"
+#     metadata = {
+#       name      = "wildcard-kapilkumaria-com-tls"
+#       namespace = "monitoring"
+#     }
+#   }
 
-  lifecycle { ignore_changes = all }
-}
+#   lifecycle { ignore_changes = all }
+# }
 
 # Argo CD Module Call
 module "argocd" {

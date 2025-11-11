@@ -22,6 +22,71 @@ resource "kubernetes_namespace" "this" {
   }
 }
 
+# # 2) Install Argo CD via Helm
+# resource "helm_release" "argocd" {
+#   name             = "argocd"
+#   repository       = "https://argoproj.github.io/argo-helm"
+#   chart            = "argo-cd"
+#   version          = var.helm_chart_version
+#   namespace        = var.namespace
+#   create_namespace = false
+#   timeout          = 600
+
+#   # Disable DEX for simplicity
+#   set {
+#     name  = "dex.enabled"
+#     value = "false"
+#   }
+
+#   # Keep Redis enabled
+#   set {
+#     name  = "redis.enabled"
+#     value = "true"
+#   }
+
+#   # Enable ingress - we'll manage details in argocd-ingress module
+#   set {
+#     name  = "server.ingress.enabled"
+#     value = "false"
+#   }
+
+#   set {
+#     name  = "server.service.type"
+#     value = "ClusterIP"
+#   }
+
+#   set {
+#     name  = "server.service.servicePortHttp"
+#     value = "80"
+#   }
+
+#   # Configure ArgoCD to work behind ingress with SSL termination
+#   set {
+#     name  = "configs.params.server.insecure"
+#     value = "false"
+#   }
+
+#   # Tell ArgoCD it's behind a proxy/ingress
+#   set {
+#     name  = "configs.params.server.rootpath"
+#     value = "/"
+#   }
+
+#   # Important: Configure the external URL for ArgoCD
+#   set {
+#     name  = "configs.params.server.url"
+#     value = "https://argocd.${var.domain}"
+#   }
+
+#   # Enable gRPC web protocol for the server (helps with proxy compatibility)
+#   set {
+#     name  = "server.enablegrpcweb"
+#     value = "true"
+#   }
+
+#   depends_on = [kubernetes_namespace.this]
+# }
+
 # 2) Install Argo CD via Helm
 resource "helm_release" "argocd" {
   name             = "argocd"
@@ -60,16 +125,33 @@ resource "helm_release" "argocd" {
     value = "80"
   }
 
-  # set {
-  #   name  = "server.insecure"
-  #   value = "true"
-  # }
-
+  # CRITICAL: Configure ArgoCD to work behind ingress/ALB
   set {
-  name  = "configs.params.server.insecure"
-  value = "false"
+    name  = "configs.params.server.insecure"
+    value = "false"
   }
 
+  set {
+    name  = "configs.params.server.rootpath"
+    value = "/"
+  }
+
+  set {
+    name  = "configs.params.server.url"
+    value = "https://argocd.${var.domain}"
+  }
+
+  # Enable gRPC web protocol for the server (helps with proxy compatibility)
+  set {
+    name  = "server.enablegrpcweb"
+    value = "true"
+  }
+
+  # Additional settings for proper ALB/proxy handling
+  set {
+    name  = "server.extraArgs"
+    value = "{--insecure}"
+  }
 
   depends_on = [kubernetes_namespace.this]
 }
@@ -95,35 +177,3 @@ resource "null_resource" "wait_for_argocd_crds" {
 
   depends_on = [helm_release.argocd]
 }
-
-# # 4) Default Argo CD Project (applied only after CRDs exist)
-# resource "kubernetes_manifest" "default_project" {
-#   manifest = {
-#     apiVersion = "argoproj.io/v1alpha1"
-#     kind       = "AppProject"
-#     metadata = {
-#       name      = "default"
-#       namespace = var.namespace
-#       labels = {
-#         "app.kubernetes.io/managed-by" = "terraform"
-#       }
-#     }
-#     spec = {
-#       description = "Default project"
-#       sourceRepos = ["*"]
-#       destinations = [
-#         {
-#           namespace = "*"
-#           server    = "https://kubernetes.default.svc"
-#         }
-#       ]
-#       clusterResourceWhitelist = [{ group = "*", kind = "*" }]
-#       namespaceResourceWhitelist = [{ group = "*", kind = "*" }]
-#     }
-#   }
-
-#   depends_on = [
-#     null_resource.wait_for_argocd_crds,
-#     helm_release.argocd
-#   ]
-# }

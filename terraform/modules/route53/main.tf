@@ -50,18 +50,18 @@ resource "aws_route53_record" "nginx" {
   records = [local.lb_hostname]
 }
 
-# Optional: apex ALIAS (recommended)
-resource "aws_route53_record" "apex" {
-  count   = var.create_apex_alias && var.nlb_hosted_zone_id != "" ? 1 : 0
-  zone_id = var.hosted_zone_id
-  name    = var.domain
-  type    = "A"
-  alias {
-    name                   = local.lb_hostname
-    zone_id                = var.nlb_hosted_zone_id  # from aws elbv2 describe-load-balancers
-    evaluate_target_health = false
-  }
-}
+# # Optional: apex ALIAS (recommended)
+# resource "aws_route53_record" "apex" {
+#   count   = var.create_apex_alias && var.nlb_hosted_zone_id != "" ? 1 : 0
+#   zone_id = var.hosted_zone_id
+#   name    = var.domain
+#   type    = "A"
+#   alias {
+#     name                   = local.lb_hostname
+#     zone_id                = var.nlb_hosted_zone_id  # from aws elbv2 describe-load-balancers
+#     evaluate_target_health = false
+#   }
+# }
 
 output "ingress_lb_hostname" {
   value = local.lb_hostname
