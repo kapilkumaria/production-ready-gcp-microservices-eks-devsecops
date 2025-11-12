@@ -1,5 +1,52 @@
+# variable "argocd_namespace" {
+#   description = "Namespace where ArgoCD App is installed"
+#   type        = string
+#   default     = "default"
+# }
+
+# variable "repo_url" {
+#   description = "Git repository URL"
+#   type        = string
+# }
+
+# variable "target_revision" {
+#   description = "Git branch or tag to sync"
+#   type        = string
+#   default     = "main"
+# }
+
+# variable "app_path" {
+#   description = "Path to the application manifests in the repository"
+#   type        = string
+# }
+
+# variable "app_namespace" {
+#   description = "Namespace where the application will be deployed"
+#   type        = string
+#   default     = "demo"
+# }
+
+# variable "depends_upon" {
+#   description = "Dependencies for this module"
+#   type        = any
+#   default     = []
+# }
+
+# variable "github_token" {
+#   description = "GitHub personal access token for private repositories"
+#   type        = string
+#   default     = ""
+#   sensitive   = true
+# }
+
+# variable "github_username" {
+#   description = "GitHub username for private repositories"
+#   type        = string
+#   default     = ""
+# }
+
 variable "argocd_namespace" {
-  description = "Namespace where ArgoCD is installed"
+  description = "Namespace where ArgoCD itself is installed"
   type        = string
   default     = "argocd"
 }
@@ -16,31 +63,31 @@ variable "target_revision" {
 }
 
 variable "app_path" {
-  description = "Path to the application manifests in the repository"
+  description = "Path to the NGINX manifests inside the repo"
   type        = string
 }
 
 variable "app_namespace" {
-  description = "Namespace where the application will be deployed"
+  description = "Namespace where the app will be deployed"
   type        = string
-  default     = "demo"
+  default     = "argocd"
 }
 
 variable "depends_upon" {
-  description = "Dependencies for this module"
+  description = "Dependencies for sequencing"
   type        = any
   default     = []
 }
 
 variable "github_token" {
-  description = "GitHub personal access token for private repositories"
+  description = "GitHub personal access token (if repo is private)"
   type        = string
-  default     = ""
   sensitive   = true
+  default     = ""
 }
 
 variable "github_username" {
-  description = "GitHub username for private repositories"
+  description = "GitHub username (if repo is private)"
   type        = string
   default     = ""
 }
