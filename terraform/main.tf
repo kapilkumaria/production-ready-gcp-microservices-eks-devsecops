@@ -225,20 +225,6 @@ module "prometheus_ingress" {
   domain = var.domain_name
 }
 
-# # Delete Old Bad Certificate
-# resource "kubernetes_manifest" "delete_old_bad_certificate" {
-#   manifest = {
-#     apiVersion = "cert-manager.io/v1"
-#     kind       = "Certificate"
-#     metadata = {
-#       name      = "wildcard-kapilkumaria-com-tls"
-#       namespace = "monitoring"
-#     }
-#   }
-
-#   lifecycle { ignore_changes = all }
-# }
-
 # Argo CD Module Call
 module "argocd" {
   source              = "./modules/argocd"
@@ -258,9 +244,15 @@ module "argocd_ingress" {
 # Argo CD Application for NGINX Sample App
 module "argocd_app_nginx" {
   source           = "./modules/argocd-app-nginx"
-  repo_url         = "https://github.com/KkInTech15/production-ready-gcp-microservices-eks-devsecops.git"
+  repo_url         = "https://github.com/kapilkumaria/production-ready-gcp-microservices-eks-devsecops.git"
   target_revision  = "main"
-  app_path         = "manifests/nginx-app"
+  app_path         = "terraform/manifests/nginx-app"
   depends_upon     = [module.argocd]
 }
 
+module "argocd_repo" {
+  source          = "./modules/argocd-repo"
+  repo_url        = "https://github.com/kapilkumaria/production-ready-gcp-microservices-eks-devsecops.git"
+  github_username = var.github_username
+  github_token    = var.github_token
+}

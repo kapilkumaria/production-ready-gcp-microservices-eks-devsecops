@@ -25,3 +25,13 @@ variable "nlb_hosted_zone_id" {
   type    = string
   default = "" # fill after fetching via AWS CLI
 }
+
+variable "github_username" {
+  type      = string
+  sensitive = true
+}
+
+variable "github_token" {
+  type      = string
+  sensitive = true
+}

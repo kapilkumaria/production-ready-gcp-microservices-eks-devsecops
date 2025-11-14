@@ -1,50 +1,3 @@
-# variable "argocd_namespace" {
-#   description = "Namespace where ArgoCD App is installed"
-#   type        = string
-#   default     = "default"
-# }
-
-# variable "repo_url" {
-#   description = "Git repository URL"
-#   type        = string
-# }
-
-# variable "target_revision" {
-#   description = "Git branch or tag to sync"
-#   type        = string
-#   default     = "main"
-# }
-
-# variable "app_path" {
-#   description = "Path to the application manifests in the repository"
-#   type        = string
-# }
-
-# variable "app_namespace" {
-#   description = "Namespace where the application will be deployed"
-#   type        = string
-#   default     = "demo"
-# }
-
-# variable "depends_upon" {
-#   description = "Dependencies for this module"
-#   type        = any
-#   default     = []
-# }
-
-# variable "github_token" {
-#   description = "GitHub personal access token for private repositories"
-#   type        = string
-#   default     = ""
-#   sensitive   = true
-# }
-
-# variable "github_username" {
-#   description = "GitHub username for private repositories"
-#   type        = string
-#   default     = ""
-# }
-
 variable "argocd_namespace" {
   description = "Namespace where ArgoCD itself is installed"
   type        = string
@@ -70,7 +23,7 @@ variable "app_path" {
 variable "app_namespace" {
   description = "Namespace where the app will be deployed"
   type        = string
-  default     = "argocd"
+  default     = "nginx-app"
 }
 
 variable "depends_upon" {
@@ -90,4 +43,9 @@ variable "github_username" {
   description = "GitHub username (if repo is private)"
   type        = string
   default     = ""
+}
+
+variable "name" {
+  type    = string
+  default = "nginx-app"
 }

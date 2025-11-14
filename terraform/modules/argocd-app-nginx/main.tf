@@ -1,65 +1,3 @@
-# terraform {
-#   required_providers {
-#     kubernetes = {
-#       source  = "hashicorp/kubernetes"
-#       version = "~> 2.38"
-#     }
-#   }
-# }
-
-# # Create the demo namespace
-# resource "kubernetes_namespace" "demo" {
-#   metadata {
-#     name = var.app_namespace
-#     labels = {
-#       "app.kubernetes.io/managed-by" = "terraform"
-#       "app.kubernetes.io/name"       = "demo"
-#     }
-#   }
-# }
-
-# # Create Argo CD Application for NGINX sample app
-# resource "kubernetes_manifest" "nginx_app" {
-#   manifest = {
-#     apiVersion = "argoproj.io/v1alpha1"
-#     kind       = "Application"
-#     metadata = {
-#       name      = "nginx-sample"
-#       namespace = var.argocd_namespace
-#       labels = {
-#         "app.kubernetes.io/managed-by" = "terraform"
-#       }
-#     }
-#     spec = {
-#       project = "default"
-
-#       source = {
-#         repoURL        = var.repo_url
-#         targetRevision = var.target_revision
-#         path           = var.app_path
-#       }
-
-#       destination = {
-#         server    = "https://kubernetes.default.svc"
-#         namespace = var.app_namespace
-#       }
-
-#       syncPolicy = {
-#         automated = {
-#           prune     = true
-#           selfHeal  = true
-#         }
-#         syncOptions = [
-#           "CreateNamespace=true"
-#         ]
-#       }
-#     }
-#   }
-
-#   depends_on = [kubernetes_namespace.demo, var.depends_upon]
-# }
-
-
 terraform {
   required_providers {
     kubernetes = {
@@ -69,29 +7,24 @@ terraform {
   }
 }
 
-###############################################
-# 1. Create Namespace for the Demo App
-###############################################
-# resource "kubernetes_namespace" "demo" {
-#   metadata {
-#     name = var.app_namespace
-#     labels = {
-#       "app.kubernetes.io/managed-by" = "terraform"
-#       "app.kubernetes.io/name"       = var.app_namespace
-#     }
-#   }
-# }
+resource "kubernetes_namespace" "nginx_app" {
+  metadata {
+    name = var.name
+    labels = {
+      "app.kubernetes.io/name"       = var.name
+      "app.kubernetes.io/managed-by" = "terraform"
+    }
+  }
+}
 
-###############################################
-# 2. Argo CD Application Resource
-###############################################
+# Argo CD Application Resource
 resource "kubernetes_manifest" "nginx_app" {
   manifest = {
     apiVersion = "argoproj.io/v1alpha1"
     kind       = "Application"
     metadata = {
       name      = "nginx-sample"
-      namespace = var.app_namespace
+      namespace = var.argocd_namespace
       labels = {
         "app.kubernetes.io/managed-by" = "terraform"
       }
@@ -124,7 +57,7 @@ resource "kubernetes_manifest" "nginx_app" {
   }
 
   depends_on = [
-    # kubernetes_namespace.demo,
+    kubernetes_namespace.nginx_app,
     var.depends_upon
   ]
 }

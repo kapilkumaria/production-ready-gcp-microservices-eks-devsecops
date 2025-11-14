@@ -11,7 +11,7 @@ terraform {
   }
 }
 
-# 1) Namespace for Argo CD
+# Namespace for Argo CD
 resource "kubernetes_namespace" "this" {
   metadata {
     name = var.namespace
@@ -22,72 +22,7 @@ resource "kubernetes_namespace" "this" {
   }
 }
 
-# # 2) Install Argo CD via Helm
-# resource "helm_release" "argocd" {
-#   name             = "argocd"
-#   repository       = "https://argoproj.github.io/argo-helm"
-#   chart            = "argo-cd"
-#   version          = var.helm_chart_version
-#   namespace        = var.namespace
-#   create_namespace = false
-#   timeout          = 600
-
-#   # Disable DEX for simplicity
-#   set {
-#     name  = "dex.enabled"
-#     value = "false"
-#   }
-
-#   # Keep Redis enabled
-#   set {
-#     name  = "redis.enabled"
-#     value = "true"
-#   }
-
-#   # Enable ingress - we'll manage details in argocd-ingress module
-#   set {
-#     name  = "server.ingress.enabled"
-#     value = "false"
-#   }
-
-#   set {
-#     name  = "server.service.type"
-#     value = "ClusterIP"
-#   }
-
-#   set {
-#     name  = "server.service.servicePortHttp"
-#     value = "80"
-#   }
-
-#   # Configure ArgoCD to work behind ingress with SSL termination
-#   set {
-#     name  = "configs.params.server.insecure"
-#     value = "false"
-#   }
-
-#   # Tell ArgoCD it's behind a proxy/ingress
-#   set {
-#     name  = "configs.params.server.rootpath"
-#     value = "/"
-#   }
-
-#   # Important: Configure the external URL for ArgoCD
-#   set {
-#     name  = "configs.params.server.url"
-#     value = "https://argocd.${var.domain}"
-#   }
-
-#   # Enable gRPC web protocol for the server (helps with proxy compatibility)
-#   set {
-#     name  = "server.enablegrpcweb"
-#     value = "true"
-#   }
-
-#   depends_on = [kubernetes_namespace.this]
-# }
-
-# 2) Install Argo CD via Helm
+# Install Argo CD via Helm
 resource "helm_release" "argocd" {
   name             = "argocd"
   repository       = "https://argoproj.github.io/argo-helm"
@@ -156,7 +91,7 @@ resource "helm_release" "argocd" {
   depends_on = [kubernetes_namespace.this]
 }
 
-# 3) Wait for CRDs to be ready (AppProject, Application, etc.)
+# Wait for CRDs to be ready (AppProject, Application, etc.)
 resource "null_resource" "wait_for_argocd_crds" {
   provisioner "local-exec" {
     command = <<EOT
