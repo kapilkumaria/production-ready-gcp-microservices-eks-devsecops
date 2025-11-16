@@ -67,7 +67,9 @@ if (process.env.ENABLE_TRACING == "1") {
 const path = require('path');
 const HipsterShopServer = require('./server');
 
-const PORT = process.env['PORT'];
+// const PORT = process.env['PORT'];
+const PORT = process.env.PORT || 50051;
+
 const PROTO_PATH = path.join(__dirname, '/proto/');
 
 const server = new HipsterShopServer(PROTO_PATH, PORT);
