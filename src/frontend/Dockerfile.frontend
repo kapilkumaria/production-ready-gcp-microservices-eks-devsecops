@@ -1,0 +1,29 @@
+# ============================
+# Stage 1: Build the frontend
+# ============================
+FROM golang:1.23 AS builder
+
+WORKDIR /app
+
+# Cache dependencies
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy entire frontend source
+COPY . .
+
+# Build Go binary
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o frontend-app .
+
+# ============================
+# Stage 2: Run the service
+# ============================
+FROM alpine:3.19
+
+WORKDIR /app
+
+COPY --from=builder /app/frontend-app .
+
+EXPOSE 8080
+
+CMD ["./frontend-app"]

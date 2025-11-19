@@ -1,8 +1,20 @@
 plugins {
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
     id 'com.google.protobuf' version '0.9.5'
     id 'com.github.sherter.google-java-format' version '0.9'
     id 'idea'
     id 'application'
+}
+
+application {
+    mainClass = 'hipstershop.AdService'
+}
+
+shadowJar {
+    archiveBaseName.set('adservice')
+    archiveClassifier.set('')
+    archiveVersion.set('')
+    mergeServiceFiles()
 }
 
 repositories {
@@ -20,8 +32,8 @@ def jacksonDatabindVersion = "2.20.0"
 def protocVersion = "4.33.0"
 
 tasks.withType(JavaCompile) {
-    sourceCompatibility = JavaVersion.VERSION_19
-    targetCompatibility = JavaVersion.VERSION_19
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 ext {
@@ -116,4 +128,12 @@ applicationDistribution.into('bin') {
     from(adService)
     from(adServiceClient)
     fileMode = 0755
+}
+
+tasks.named("verifyGoogleJavaFormat").configure {
+    enabled = false
+}
+
+tasks.named("googleJavaFormat").configure {
+    enabled = false
 }

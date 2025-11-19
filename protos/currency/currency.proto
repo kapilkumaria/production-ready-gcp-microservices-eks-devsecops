@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package hipstershop;
+
+option go_package = "github.com/production/gcp-microservices/frontend/genproto;genproto";
+
+// CurrencyService definition.
+service CurrencyService {
+  rpc GetSupportedCurrencies(Empty) returns (GetSupportedCurrenciesResponse) {}
+  rpc Convert(CurrencyConversionRequest) returns (Money) {}
+}
+
+// Empty message (shared across services)
+message Empty {}
+
+// Represents an amount of money with its currency type.
+message Money {
+  string currency_code = 1;  // ISO 4217 code
+  int64 units = 2;           // Whole units (dollars, euros)
+  int32 nanos = 3;           // Nano units (10^-9)
+}
+
+message GetSupportedCurrenciesResponse {
+  repeated string currency_codes = 1;
+}
+
+message CurrencyConversionRequest {
+  Money from = 1;
+  string to_code = 2;
+}

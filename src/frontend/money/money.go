@@ -17,7 +17,7 @@ package money
 import (
 	"errors"
 
-	pb "github.com/GoogleCloudPlatform/microservices-demo/src/frontend/genproto"
+	pb "frontend/genproto/github.com/production/gcp-microservices/frontend/genproto"
 )
 
 const (

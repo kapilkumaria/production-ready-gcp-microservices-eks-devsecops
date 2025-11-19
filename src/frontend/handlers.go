@@ -15,26 +15,31 @@
 package main
 
 import (
-	"context"
-	"encoding/json"
-	"fmt"
-	"html/template"
-	"io"
-	"math/rand"
-	"net"
-	"net/http"
-	"os"
-	"strconv"
-	"strings"
-	"time"
+    "context"
+    "encoding/json"
+    "fmt"
+    "html/template"
+    "io"
+    "math/rand"
+    "net"
+    "net/http"
+    "os"
+    "strconv"
+    "strings"
+    "time"
 
-	"github.com/gorilla/mux"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
+    "github.com/gorilla/mux"
+    "github.com/pkg/errors"
+    "github.com/sirupsen/logrus"
 
-	pb "github.com/GoogleCloudPlatform/microservices-demo/src/frontend/genproto"
-	"github.com/GoogleCloudPlatform/microservices-demo/src/frontend/money"
-	"github.com/GoogleCloudPlatform/microservices-demo/src/frontend/validator"
+
+
+	pb "frontend/genproto/github.com/production/gcp-microservices/frontend/genproto"
+
+
+
+    "frontend/money"
+    "frontend/validator"
 )
 
 type platformDetails struct {

@@ -1,25 +1,39 @@
 #!/bin/bash -eu
-#
-# Copyright 2018 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
-# [START gke_frontend_genproto]
-
-PATH=$PATH:$(go env GOPATH)/bin
-protodir=../../protos
+export PATH=$PATH:$(go env GOPATH)/bin
+protodir=/app/protos
 outdir=./genproto
+mkdir -p "$outdir"
 
-protoc --proto_path=$protodir --go_out=./$outdir --go_opt=paths=source_relative --go-grpc_out=./$outdir --go-grpc_opt=paths=source_relative $protodir/demo.proto
+# Common mapping: map all proto folders to the same Go package
+PROTO_GO_PKG="github.com/production/gcp-microservices/frontend/genproto"
 
-# [END gke_frontend_genproto]
+# Mappings for each folder
+MAPPING="
+  --go_opt=Mdemo.proto=${PROTO_GO_PKG}
+  --go_opt=Madservice/adservice.proto=${PROTO_GO_PKG}
+  --go_opt=Mcart/cart.proto=${PROTO_GO_PKG}
+  --go_opt=Mcurrency/currency.proto=${PROTO_GO_PKG}
+  --go_opt=Mpayment/payment.proto=${PROTO_GO_PKG}
+  --go_opt=Mproductcatalog/productcatalog.proto=${PROTO_GO_PKG}
+  --go_opt=Mrecommendation/recommendation.proto=${PROTO_GO_PKG}
+  --go_opt=Mgrpc/health/v1/health.proto=${PROTO_GO_PKG}
+  --go-grpc_opt=Mdemo.proto=${PROTO_GO_PKG}
+  --go-grpc_opt=Madservice/adservice.proto=${PROTO_GO_PKG}
+  --go-grpc_opt=Mcart/cart.proto=${PROTO_GO_PKG}
+  --go-grpc_opt=Mcurrency/currency.proto=${PROTO_GO_PKG}
+  --go-grpc_opt=Mpayment/payment.proto=${PROTO_GO_PKG}
+  --go-grpc_opt=Mproductcatalog/productcatalog.proto=${PROTO_GO_PKG}
+  --go-grpc_opt=Mrecommendation/recommendation.proto=${PROTO_GO_PKG}
+  --go-grpc_opt=Mgrpc/health/v1/health.proto=${PROTO_GO_PKG}
+"
+
+find "$protodir" -name "*.proto" | while read -r proto; do
+  echo "Generating: $proto"
+  protoc \
+    --proto_path="$protodir" \
+    --go_out="$outdir" \
+    --go-grpc_out="$outdir" \
+    $MAPPING \
+    "$proto"
+done
