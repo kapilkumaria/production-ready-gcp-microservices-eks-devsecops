@@ -1,23 +1,26 @@
 #!/bin/bash -eu
-#
-# Copyright 2018 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# adservice/genproto.sh
 
-# [START gke_adservice_genproto]
-# protos are needed in adservice folder for compiling during Docker build.
+export PATH=$PATH:$(go env GOPATH)/bin
 
-mkdir -p proto && \
-cp ../../protos/demo.proto src/main/proto
+PROTO_DIR="../../protos"
+OUT_DIR="./genproto"
+GO_PKG="adservice/genproto"
 
-# [END gke_adservice_genproto]
+echo "Using Go package: ${GO_PKG}"
+echo "Output directory: ${OUT_DIR}"
+echo "Proto source dir: ${PROTO_DIR}"
+echo "------------------------------------------"
+
+# Clean output
+rm -rf "${OUT_DIR}"
+mkdir -p "${OUT_DIR}"
+
+# Generate ONLY the protos that adservice needs
+protoc \
+  --proto_path="${PROTO_DIR}" \
+  --go_out="${OUT_DIR}" --go_opt=module=${GO_PKG} \
+  --go-grpc_out="${OUT_DIR}" --go-grpc_opt=module=${GO_PKG} \
+  "${PROTO_DIR}"/adservice/ad_service.proto
+
+echo "✅ AdService proto generation completed!"

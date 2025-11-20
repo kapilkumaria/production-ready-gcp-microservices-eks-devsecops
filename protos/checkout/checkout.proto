@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package hipstershop;
+
+option java_multiple_files = true;
+option java_package = "hipstershop";
+option go_package = "frontend/genproto";
+
+import "productcatalog/common.proto";
+import "cart/cart.proto";
+
+// Request for placing an order
+message PlaceOrderRequest {
+  string user_id = 1;
+  string user_currency = 2;  // user-selected currency
+  Address address = 3;
+  CreditCardInfo credit_card = 4;
+}
+
+// Response for placing an order
+message PlaceOrderResponse {
+  string order_id = 1;
+  Money shipping_cost = 2;
+  repeated OrderItem items = 3;
+  Money total_cost = 4;
+}
+
+// Represents a single ordered item
+message OrderItem {
+  CartItem item = 1;
+  Money cost = 2;
+}
+
+service CheckoutService {
+  rpc PlaceOrder(PlaceOrderRequest) returns (PlaceOrderResponse) {}
+}

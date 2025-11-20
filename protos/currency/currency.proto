@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package hipstershop;
+
+option java_multiple_files = true;
+option java_package = "hipstershop";
+option go_package = "frontend/genproto";
+
+import "productcatalog/common.proto";
+
+service CurrencyService {
+  // Converts a Money value to the given currency_code
+  rpc Convert(CurrencyConversionRequest) returns (Money) {}
+}
+
+message CurrencyConversionRequest {
+  Money from = 1;
+  string to_code = 2;
+}

@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package hipstershop;
+
+option java_multiple_files = true;
+option java_package = "hipstershop";
+option go_package = "frontend/genproto";
+
+import "productcatalog/common.proto";  // Reuse CreditCardInfo + Money
+
+// Payment request
+message ChargeRequest {
+  string user_id = 1;
+  Money amount = 2;
+  CreditCardInfo credit_card = 3;
+}
+
+// Payment response
+message ChargeResponse {
+  string transaction_id = 1;
+}
+
+service PaymentService {
+  rpc Charge(ChargeRequest) returns (ChargeResponse) {}
+}

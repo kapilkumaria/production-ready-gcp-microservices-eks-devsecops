@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package hipstershop;
+
+option java_multiple_files = true;
+option java_package = "hipstershop";
+option go_package = "frontend/genproto";
+
+import "productcatalog/common.proto"; // For Empty
+
+// Represents a single cart item.
+message CartItem {
+  string product_id = 1;
+  int32 quantity = 2;
+}
+
+// Request to get a user's cart.
+message GetCartRequest {
+  string user_id = 1;
+}
+
+// Response containing the user's cart.
+message GetCartResponse {
+  repeated CartItem items = 1;
+}
+
+// Request to add an item to the cart.
+message AddItemRequest {
+  string user_id = 1;
+  CartItem item = 2;
+}
+
+// Response for AddItem.
+message AddItemResponse {
+  Empty empty = 1;
+}
+
+// Request to empty the user's cart.
+message EmptyCartRequest {
+  string user_id = 1;
+}
+
+// Response for EmptyCart.
+message EmptyCartResponse {
+  Empty empty = 1;
+}
+
+service CartService {
+  rpc GetCart(GetCartRequest) returns (GetCartResponse) {}
+  rpc AddItem(AddItemRequest) returns (AddItemResponse) {}
+  rpc EmptyCart(EmptyCartRequest) returns (EmptyCartResponse) {}
+}

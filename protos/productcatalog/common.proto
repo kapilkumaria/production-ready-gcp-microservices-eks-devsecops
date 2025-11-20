@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package hipstershop;
+
+option java_multiple_files = true;
+option java_package = "hipstershop";
+option go_package = "frontend/genproto";
+
+// A generic empty message for RPC responses
+message Empty {}
+
+// A postal address
+message Address {
+  string street_address = 1;
+  string city = 2;
+  string state = 3;
+  string country = 4;
+  string zip_code = 5;
+}
+
+// Credit card information
+message CreditCardInfo {
+  string credit_card_number = 1;
+  int32 credit_card_expiration_month = 2;
+  int32 credit_card_expiration_year = 3;
+  int32 credit_card_cvv = 4;
+}
+
+// Represents a specific monetary value in a currency.
+message Money {
+  string currency_code = 1;  // USD, JPY, EUR, etc.
+  int64 units = 2;            // Whole units
+  int32 nanos = 3;            // Fractional units in nano (10^-9)
+}

@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package hipstershop;
+
+option java_multiple_files = true;
+option java_package = "hipstershop";
+option go_package = "frontend/genproto";
+
+import "productcatalog/product_catalog.proto";
+
+// Request message for recommendations
+message ListRecommendationsRequest {
+  string product_id = 1;
+}
+
+// Response containing recommended product IDs
+message ListRecommendationsResponse {
+  repeated string product_ids = 1;
+}
+
+service RecommendationService {
+  rpc ListRecommendations(ListRecommendationsRequest)
+      returns (ListRecommendationsResponse) {}
+}
