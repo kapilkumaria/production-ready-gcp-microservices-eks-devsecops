@@ -4,7 +4,7 @@
 // - protoc             v3.21.12
 // source: grpc/health/v1/health.proto
 
-package grpc_health_v1
+package genproto
 
 import (
 	context "context"
@@ -20,7 +20,6 @@ const _ = grpc.SupportPackageIsVersion7
 
 const (
 	Health_Check_FullMethodName = "/grpc.health.v1.Health/Check"
-	Health_Watch_FullMethodName = "/grpc.health.v1.Health/Watch"
 )
 
 // HealthClient is the client API for Health service.
@@ -28,7 +27,6 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type HealthClient interface {
 	Check(ctx context.Context, in *HealthCheckRequest, opts ...grpc.CallOption) (*HealthCheckResponse, error)
-	Watch(ctx context.Context, in *HealthCheckRequest, opts ...grpc.CallOption) (Health_WatchClient, error)
 }
 
 type healthClient struct {
@@ -48,44 +46,11 @@ func (c *healthClient) Check(ctx context.Context, in *HealthCheckRequest, opts .
 	return out, nil
 }
 
-func (c *healthClient) Watch(ctx context.Context, in *HealthCheckRequest, opts ...grpc.CallOption) (Health_WatchClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Health_ServiceDesc.Streams[0], Health_Watch_FullMethodName, opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &healthWatchClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type Health_WatchClient interface {
-	Recv() (*HealthCheckResponse, error)
-	grpc.ClientStream
-}
-
-type healthWatchClient struct {
-	grpc.ClientStream
-}
-
-func (x *healthWatchClient) Recv() (*HealthCheckResponse, error) {
-	m := new(HealthCheckResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
 // HealthServer is the server API for Health service.
 // All implementations must embed UnimplementedHealthServer
 // for forward compatibility
 type HealthServer interface {
 	Check(context.Context, *HealthCheckRequest) (*HealthCheckResponse, error)
-	Watch(*HealthCheckRequest, Health_WatchServer) error
 	mustEmbedUnimplementedHealthServer()
 }
 
@@ -95,9 +60,6 @@ type UnimplementedHealthServer struct {
 
 func (UnimplementedHealthServer) Check(context.Context, *HealthCheckRequest) (*HealthCheckResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Check not implemented")
-}
-func (UnimplementedHealthServer) Watch(*HealthCheckRequest, Health_WatchServer) error {
-	return status.Errorf(codes.Unimplemented, "method Watch not implemented")
 }
 func (UnimplementedHealthServer) mustEmbedUnimplementedHealthServer() {}
 
@@ -130,27 +92,6 @@ func _Health_Check_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Health_Watch_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(HealthCheckRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(HealthServer).Watch(m, &healthWatchServer{stream})
-}
-
-type Health_WatchServer interface {
-	Send(*HealthCheckResponse) error
-	grpc.ServerStream
-}
-
-type healthWatchServer struct {
-	grpc.ServerStream
-}
-
-func (x *healthWatchServer) Send(m *HealthCheckResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
 // Health_ServiceDesc is the grpc.ServiceDesc for Health service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -163,12 +104,6 @@ var Health_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Health_Check_Handler,
 		},
 	},
-	Streams: []grpc.StreamDesc{
-		{
-			StreamName:    "Watch",
-			Handler:       _Health_Watch_Handler,
-			ServerStreams: true,
-		},
-	},
+	Streams:  []grpc.StreamDesc{},
 	Metadata: "grpc/health/v1/health.proto",
 }

@@ -15,10 +15,11 @@
 package money
 
 import (
-	"errors"
+    "errors"
 
-	pb "frontend/genproto/github.com/production/gcp-microservices/frontend/genproto"
+    pb "frontend/genproto"
 )
+
 
 const (
 	nanosMin = -999999999
@@ -101,7 +102,9 @@ func Sum(l, r pb.Money) (pb.Money, error) {
 
 	if (units == 0 && nanos == 0) || (units > 0 && nanos >= 0) || (units < 0 && nanos <= 0) {
 		// same sign <units, nanos>
-		units += int64(nanos / nanosMod)
+
+		units += int32(nanos / nanosMod)
+
 		nanos = nanos % nanosMod
 	} else {
 		// different sign. nanos guaranteed to not to go over the limit

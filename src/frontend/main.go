@@ -32,7 +32,9 @@ import (
 	"go.opentelemetry.io/otel/propagation"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"google.golang.org/grpc"
-	pb "frontend/genproto/github.com/production/gcp-microservices/frontend/genproto"
+
+	
+
 
 )
 
