@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package productcatalog;
+
+service ProductCatalogService {
+  rpc ListProducts(Empty) returns (ListProductsResponse) {}
+}
+
+message Empty {}
+
+message Product {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  Price priceUsd = 4;
+}
+
+message Price {
+  int64 units = 1;
+  int32 nanos = 2;
+}
+
+message ListProductsResponse {
+  repeated Product products = 1;
+}

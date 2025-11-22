@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  productcatalogservice:
+    build:
+      context: ./src/productcatalogservice
+    container_name: productcatalogservice
+    ports:
+      - "3550:3550"
+    networks:
+      - shopnet
+
+  frontend-gateway:
+    build:
+      context: ./src/frontend-gateway
+    container_name: frontend-gateway
+    environment:
+      PRODUCT_SERVICE_ADDR: productcatalogservice:3550
+      PORT: 8081
+    ports:
+      - "8081:8081"
+    depends_on:
+      - productcatalogservice
+    networks:
+      - shopnet
+
+  frontend-ui:
+    build:
+      context: ./src/frontend-ui
+    container_name: frontend-ui
+    environment:
+      REACT_APP_API_URL: http://frontend-gateway:8081
+    ports:
+      - "3000:80"
+    depends_on:
+      - frontend-gateway
+    networks:
+      - shopnet
+
+networks:
+  shopnet:
+    driver: bridge
