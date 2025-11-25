@@ -1,6 +1,9 @@
 version: "3.9"
 
 services:
+  # ---------------------------------------------------------
+  # PRODUCT CATALOG SERVICE
+  # ---------------------------------------------------------
   productcatalogservice:
     build:
       context: ./src/productcatalogservice
@@ -10,28 +13,150 @@ services:
     networks:
       - shopnet
 
+  # ---------------------------------------------------------
+  # RECOMMENDATION SERVICE
+  # ---------------------------------------------------------
+  recommendationservice:
+    build:
+      context: ./src/recommendationservice
+    container_name: recommendationservice
+    ports:
+      - "8085:8085"
+    networks:
+      - shopnet
+    environment:
+      PRODUCT_CATALOG_SERVICE_ADDR: productcatalogservice:3550
+
+  # ---------------------------------------------------------
+  # EMAIL SERVICE
+  # ---------------------------------------------------------
+  emailservice:
+    build:
+      context: ./src/emailservice
+    container_name: emailservice
+    networks:
+      - shopnet
+    # NO PORTS (internal only)
+
+  # ---------------------------------------------------------
+  # CART SERVICE
+  # ---------------------------------------------------------
+  cartservice:
+    build:
+      context: ./src/cartservice/src
+    container_name: cartservice
+    ports:
+      - "7070:7070"
+    networks:
+      - shopnet
+
+  # ---------------------------------------------------------
+  # SHIPPING SERVICE
+  # ---------------------------------------------------------
+  shippingservice:
+    build:
+      context: ./src/shippingservice
+    container_name: shippingservice
+    ports:
+      - "50051:50051"
+    networks:
+      - shopnet
+
+  # ---------------------------------------------------------
+  # AD SERVICE
+  # ---------------------------------------------------------
+  adservice:
+    build:
+      context: ./src/adservice
+    container_name: adservice
+    ports:
+      - "9555:9555"
+    networks:
+      - shopnet
+
+  # ---------------------------------------------------------
+  # PAYMENT SERVICE
+  # ---------------------------------------------------------
+  paymentservice:
+    build:
+      context: ./src/paymentservice
+    container_name: paymentservice
+    ports:
+      - "50052:50051"
+    networks:
+      - shopnet
+
+  # ---------------------------------------------------------
+  # CHECKOUT SERVICE
+  # ---------------------------------------------------------
+  checkoutservice:
+    build:
+      context: ./src/checkoutservice
+    container_name: checkoutservice
+    networks:
+      - shopnet
+    environment:
+      PRODUCT_CATALOG_SERVICE_ADDR: productcatalogservice:3550
+      CART_SERVICE_ADDR: cartservice:7070
+      SHIPPING_SERVICE_ADDR: shippingservice:50051
+      PAYMENT_SERVICE_ADDR: paymentservice:50051
+      EMAIL_SERVICE_ADDR: emailservice:8080
+      CURRENCY_SERVICE_ADDR: currencyservice:7000
+
+  # ---------------------------------------------------------
+  # CURRENCY SERVICE
+  # ---------------------------------------------------------
+  currencyservice:
+    build:
+      context: ./src/currencyservice
+    container_name: currencyservice
+    ports:
+      - "7000:7000"
+    networks:
+      - shopnet
+
+  # ---------------------------------------------------------
+  # FRONTEND GATEWAY (REST → gRPC)
+  # ---------------------------------------------------------
   frontend-gateway:
     build:
       context: ./src/frontend-gateway
     container_name: frontend-gateway
+    depends_on:
+      - productcatalogservice
+      - cartservice
+      - recommendationservice
+      - shippingservice
+      - checkoutservice
+      - currencyservice
+      - emailservice
+      - adservice
     environment:
       PRODUCT_SERVICE_ADDR: productcatalogservice:3550
+      CART_SERVICE_ADDR: cartservice:7070
+      RECOMMENDATION_SERVICE_ADDR: recommendationservice:8085
+      SHIPPING_SERVICE_ADDR: shippingservice:50051
+      CHECKOUT_SERVICE_ADDR: checkoutservice:8080
+      CURRENCY_SERVICE_ADDR: currencyservice:7000
+      AD_SERVICE_ADDR: adservice:9555
+      EMAIL_SERVICE_ADDR: emailservice:8080
       PORT: 8081
     ports:
       - "8081:8081"
-    depends_on:
-      - productcatalogservice
     networks:
       - shopnet
 
+  # ---------------------------------------------------------
+  # FRONTEND UI
+  # ---------------------------------------------------------
   frontend-ui:
     build:
       context: ./src/frontend-ui
     container_name: frontend-ui
-    ports:
-      - "3000:80"
     depends_on:
       - frontend-gateway
+    ports:
+      - "3000:80"
     networks:
       - shopnet
 
