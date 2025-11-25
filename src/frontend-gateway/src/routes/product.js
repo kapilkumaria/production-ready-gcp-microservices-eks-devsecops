@@ -10,7 +10,7 @@ router.get("/", (req, res) => {
       console.error("ListProducts gRPC Error:", err);
       return res.status(500).json({ error: err.message });
     }
-    return res.json(response.products);
+    return res.json({ products: response.products });
   });
 });
 

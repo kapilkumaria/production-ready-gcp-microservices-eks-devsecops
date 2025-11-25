@@ -1,17 +1,3 @@
-// Copyright 2024 Google LLC
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      https://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package main
 
 import (
@@ -25,7 +11,9 @@ import (
 	"cloud.google.com/go/alloydbconn"
 	secretmanager "cloud.google.com/go/secretmanager/apiv1"
 	"cloud.google.com/go/secretmanager/apiv1/secretmanagerpb"
+
 	pb "github.com/GoogleCloudPlatform/microservices-demo/src/productcatalogservice/genproto"
+
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -46,12 +34,12 @@ func loadCatalogFromLocalFile(catalog *pb.ListProductsResponse) error {
 
 	catalogJSON, err := os.ReadFile("products.json")
 	if err != nil {
-		log.Warnf("failed to open product catalog json file: %v", err)
+		log.Warnf("failed to open product catalog json: %v", err)
 		return err
 	}
 
 	if err := jsonpb.Unmarshal(bytes.NewReader(catalogJSON), catalog); err != nil {
-		log.Warnf("failed to parse the catalog JSON: %v", err)
+		log.Warnf("failed to parse JSON: %v", err)
 		return err
 	}
 
@@ -72,14 +60,13 @@ func getSecretPayload(project, secret, version string) (string, error) {
 		Name: fmt.Sprintf("projects/%s/secrets/%s/versions/%s", project, secret, version),
 	}
 
-	// Call the API.
-	result, err := client.AccessSecretVersion(ctx, req)
+	res, err := client.AccessSecretVersion(ctx, req)
 	if err != nil {
-		log.Warnf("failed to access SecretVersion: %v", err)
+		log.Warnf("failed accessing secret: %v", err)
 		return "", err
 	}
 
-	return string(result.Payload.Data), nil
+	return string(res.Payload.Data), nil
 }
 
 func loadCatalogFromAlloyDB(catalog *pb.ListProductsResponse) error {
@@ -100,62 +87,66 @@ func loadCatalogFromAlloyDB(catalog *pb.ListProductsResponse) error {
 
 	dialer, err := alloydbconn.NewDialer(context.Background())
 	if err != nil {
-		log.Warnf("failed to set-up dialer connection: %v", err)
+		log.Warnf("failed to create dialer: %v", err)
 		return err
 	}
-	cleanup := func() error { return dialer.Close() }
-	defer cleanup()
+	defer dialer.Close()
 
-	dsn := fmt.Sprintf(
-		"user=%s password=%s dbname=%s sslmode=disable",
-		"postgres", pgPassword, pgDatabaseName,
-	)
-
+	dsn := fmt.Sprintf("user=postgres password=%s dbname=%s sslmode=disable", pgPassword, pgDatabaseName)
 	config, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
-		log.Warnf("failed to parse DSN config: %v", err)
+		log.Warnf("failed parsing DSN: %v", err)
 		return err
 	}
 
-	pgInstanceURI := fmt.Sprintf("projects/%s/locations/%s/clusters/%s/instances/%s", projectID, region, pgClusterName, pgInstanceName)
-	config.ConnConfig.DialFunc = func(ctx context.Context, _ string, _ string) (net.Conn, error) {
-		return dialer.Dial(ctx, pgInstanceURI)
+	pgURI := fmt.Sprintf("projects/%s/locations/%s/clusters/%s/instances/%s", projectID, region, pgClusterName, pgInstanceName)
+	config.ConnConfig.DialFunc = func(ctx context.Context, _, _ string) (net.Conn, error) {
+		return dialer.Dial(ctx, pgURI)
 	}
 
 	pool, err := pgxpool.NewWithConfig(context.Background(), config)
 	if err != nil {
-		log.Warnf("failed to set-up pgx pool: %v", err)
+		log.Warnf("failed creating pgx pool: %v", err)
 		return err
 	}
 	defer pool.Close()
 
 	query := "SELECT id, name, description, picture, price_usd_currency_code, price_usd_units, price_usd_nanos, categories FROM " + pgTableName
+
 	rows, err := pool.Query(context.Background(), query)
 	if err != nil {
-		log.Warnf("failed to query database: %v", err)
+		log.Warnf("failed querying DB: %v", err)
 		return err
 	}
 	defer rows.Close()
 
 	catalog.Products = catalog.Products[:0]
+
 	for rows.Next() {
-		product := &pb.Product{}
-		product.PriceUsd = &pb.Money{}
+		product := &pb.Product{PriceUsd: &pb.Money{}}
 
 		var categories string
-		err = rows.Scan(&product.Id, &product.Name, &product.Description,
-			&product.Picture, &product.PriceUsd.CurrencyCode, &product.PriceUsd.Units,
-			&product.PriceUsd.Nanos, &categories)
+		err = rows.Scan(
+			&product.Id,
+			&product.Name,
+			&product.Description,
+			&product.Picture,
+			&product.PriceUsd.CurrencyCode,
+			&product.PriceUsd.Units,
+			&product.PriceUsd.Nanos,
+			&categories,
+		)
 		if err != nil {
-			log.Warnf("failed to scan query result row: %v", err)
+			log.Warnf("failed scanning row: %v", err)
 			return err
 		}
+
 		categories = strings.ToLower(categories)
 		product.Categories = strings.Split(categories, ",")
 
 		catalog.Products = append(catalog.Products, product)
 	}
 
-	log.Info("successfully parsed product catalog from AlloyDB")
+	log.Info("successfully loaded catalog from AlloyDB")
 	return nil
 }
