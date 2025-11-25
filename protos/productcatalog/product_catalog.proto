@@ -2,19 +2,20 @@ syntax = "proto3";
 
 package hipstershop;
 
+// Java options
 option java_multiple_files = true;
 option java_package = "hipstershop";
-option go_package = "frontend/genproto";
+
+// Go output package — MUST MATCH go.mod
+option go_package = "production-ready-gcp-microservices-eks-devsecops/src/productcatalogservice/hipstershop";
 
 import "productcatalog/common.proto";
 
 service ProductCatalogService {
-  rpc ListProducts(Empty) returns (ListProductsResponse) {}  // Uses Empty from common.proto
-  rpc GetProduct(GetProductRequest) returns (Product) {}
-  rpc SearchProducts(SearchProductsRequest) returns (SearchProductsResponse) {}
+  rpc ListProducts(Empty) returns (ListProductsResponse);
+  rpc GetProduct(GetProductRequest) returns (Product);
+  rpc SearchProducts(SearchProductsRequest) returns (SearchProductsResponse);
 }
-
-// REMOVE THIS DUPLICATE DEFINITION:
 
 message GetProductRequest {
   string id = 1;

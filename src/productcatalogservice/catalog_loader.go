@@ -12,7 +12,7 @@ import (
 	secretmanager "cloud.google.com/go/secretmanager/apiv1"
 	"cloud.google.com/go/secretmanager/apiv1/secretmanagerpb"
 
-	pb "github.com/GoogleCloudPlatform/microservices-demo/src/productcatalogservice/genproto"
+	pb "production-ready-gcp-microservices-eks-devsecops/src/productcatalogservice/productcatalog"
 
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/jackc/pgx/v5/pgxpool"

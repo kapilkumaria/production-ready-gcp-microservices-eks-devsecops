@@ -11,7 +11,7 @@ import (
 	"syscall"
 	"time"
 
-	pb "github.com/GoogleCloudPlatform/microservices-demo/src/productcatalogservice/genproto"
+	pb "production-ready-gcp-microservices-eks-devsecops/src/productcatalogservice/productcatalog"
 
 	"cloud.google.com/go/profiler"
 	"github.com/pkg/errors"

@@ -1,10 +1,15 @@
 syntax = "proto3";
 
-package productcatalog;
+package hipstershop;
 
-option go_package = "github.com/GoogleCloudPlatform/microservices-demo/src/productcatalogservice/genproto";
+// Java options
+option java_multiple_files = true;
+option java_package = "hipstershop";
 
-message Empty {}
+// Go output package — MUST MATCH go.mod
+option go_package = "production-ready-gcp-microservices-eks-devsecops/src/productcatalogservice/hipstershop";
+
+import "productcatalog/common.proto";
 
 service ProductCatalogService {
   rpc ListProducts(Empty) returns (ListProductsResponse);
@@ -14,6 +19,10 @@ service ProductCatalogService {
 
 message GetProductRequest {
   string id = 1;
+}
+
+message ListProductsResponse {
+  repeated Product products = 1;
 }
 
 message SearchProductsRequest {
@@ -28,19 +37,7 @@ message Product {
   string id = 1;
   string name = 2;
   string description = 3;
-
-  string picture = 4;                // REQUIRED by Go code
-  repeated string categories = 5;     // REQUIRED by Go code
-
-  Money price_usd = 6;                // REQUIRED by Go code
-}
-
-message Money {
-  string currency_code = 1;
-  int64 units = 2;
-  int32 nanos = 3;
-}
-
-message ListProductsResponse {
-  repeated Product products = 1;
+  string picture = 4;
+  Money price_usd = 5;
+  repeated string categories = 6;
 }

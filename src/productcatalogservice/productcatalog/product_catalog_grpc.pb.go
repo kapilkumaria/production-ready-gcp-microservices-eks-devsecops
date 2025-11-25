@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v3.21.12
-// source: product.proto
+// source: productcatalog/product_catalog.proto
 
-package genproto
+package hipstershop
 
 import (
 	context "context"
@@ -19,9 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ProductCatalogService_ListProducts_FullMethodName   = "/productcatalog.ProductCatalogService/ListProducts"
-	ProductCatalogService_GetProduct_FullMethodName     = "/productcatalog.ProductCatalogService/GetProduct"
-	ProductCatalogService_SearchProducts_FullMethodName = "/productcatalog.ProductCatalogService/SearchProducts"
+	ProductCatalogService_ListProducts_FullMethodName   = "/hipstershop.ProductCatalogService/ListProducts"
+	ProductCatalogService_GetProduct_FullMethodName     = "/hipstershop.ProductCatalogService/GetProduct"
+	ProductCatalogService_SearchProducts_FullMethodName = "/hipstershop.ProductCatalogService/SearchProducts"
 )
 
 // ProductCatalogServiceClient is the client API for ProductCatalogService service.
@@ -176,7 +176,7 @@ func _ProductCatalogService_SearchProducts_Handler(srv interface{}, ctx context.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var ProductCatalogService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "productcatalog.ProductCatalogService",
+	ServiceName: "hipstershop.ProductCatalogService",
 	HandlerType: (*ProductCatalogServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -193,5 +193,5 @@ var ProductCatalogService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "product.proto",
+	Metadata: "productcatalog/product_catalog.proto",
 }

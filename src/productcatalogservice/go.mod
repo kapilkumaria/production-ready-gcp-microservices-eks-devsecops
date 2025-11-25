@@ -1,4 +1,4 @@
-module github.com/GoogleCloudPlatform/microservices-demo/src/productcatalogservice
+module production-ready-gcp-microservices-eks-devsecops/src/productcatalogservice
 
 go 1.23.0
 
@@ -8,6 +8,7 @@ require (
 	cloud.google.com/go/alloydbconn v1.15.0
 	cloud.google.com/go/profiler v0.4.2
 	cloud.google.com/go/secretmanager v1.14.6
+	github.com/GoogleCloudPlatform/microservices-demo/src/productcatalogservice v0.0.0-20251124185724-4ef2146b9dc1
 	github.com/golang/protobuf v1.5.4
 	github.com/jackc/pgx/v5 v5.7.4
 	github.com/pkg/errors v0.9.1

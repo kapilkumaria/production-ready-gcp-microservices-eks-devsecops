@@ -2,10 +2,10 @@ import grpc from "@grpc/grpc-js";
 import protoLoader from "@grpc/proto-loader";
 import path from "path";
 
-const PROTO_PATH = path.resolve("src/protos/productcatalog/product_catalog.proto");
+const PROTO_PATH = path.resolve("protos/currency/currency.proto");
 
 const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
-  includeDirs: [path.resolve("src/protos")],   // FIXED
+  includeDirs: [path.resolve("protos")],
   keepCase: true,
   longs: String,
   enums: String,
@@ -15,7 +15,7 @@ const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
 
 const proto = grpc.loadPackageDefinition(packageDefinition).hipstershop;
 
-export const productClient = new proto.ProductCatalogService(
-  "productcatalogservice:3550",
+export const currencyClient = new proto.CurrencyService(
+  "currencyservice:7000",
   grpc.credentials.createInsecure()
 );

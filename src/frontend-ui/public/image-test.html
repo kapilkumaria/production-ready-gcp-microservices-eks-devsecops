@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Image URL Test Page</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+    }
+    .item {
+      margin-bottom: 20px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      width: 350px;
+    }
+    img {
+      width: 150px;
+      height: auto;
+      margin-top: 10px;
+      border: 1px solid #ccc;
+    }
+    .ok { color: green; font-weight: bold; }
+    .error { color: red; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<h1>Product Image URL Test</h1>
+<p>This page tests every product image URL by loading it and reporting if it succeeds or fails.</p>
+
+<div id="results"></div>
+
+<script>
+// Must match your updated products.json
+const images = [
+  "/products/sunglasses.jpg",
+  "/products/tank-top.jpg",
+  "/products/watch.jpg",
+  "/products/loafers.jpg",
+  "/products/hairdryer.jpg",
+  "/products/candle-holder.jpg",
+  "/products/salt-and-pepper-shakers.jpg",
+  "/products/bamboo-glass-jar.jpg",
+  "/products/mug.jpg"
+];
+
+const container = document.getElementById("results");
+
+images.forEach(url => {
+  const div = document.createElement("div");
+  div.className = "item";
+
+  div.innerHTML = `<b>Testing:</b> ${url}<br><span>Status: Checking...</span>`;
+  container.appendChild(div);
+
+  const img = new Image();
+  img.src = url;
+
+  img.onload = () => {
+    div.querySelector("span").innerHTML = "<span class='ok'>Loaded OK</span>";
+    div.appendChild(img);
+  };
+
+  img.onerror = () => {
+    div.querySelector("span").innerHTML = "<span class='error'>FAILED</span>";
+  };
+});
+</script>
+
+</body>
+</html>

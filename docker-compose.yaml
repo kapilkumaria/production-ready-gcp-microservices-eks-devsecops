@@ -45,10 +45,15 @@ services:
     build:
       context: ./src/cartservice/src
     container_name: cartservice
+    depends_on:
+      - redis
     ports:
       - "7070:7070"
     networks:
       - shopnet
+    environment:
+      REDIS_ADDR: "redis:6379"
+
 
   # ---------------------------------------------------------
   # SHIPPING SERVICE
@@ -120,7 +125,8 @@ services:
   # ---------------------------------------------------------
   frontend-gateway:
     build:
-      context: ./src/frontend-gateway
+      context: .
+      dockerfile: Dockerfile.gateway
     container_name: frontend-gateway
     depends_on:
       - productcatalogservice
@@ -136,7 +142,7 @@ services:
       CART_SERVICE_ADDR: cartservice:7070
       RECOMMENDATION_SERVICE_ADDR: recommendationservice:8085
       SHIPPING_SERVICE_ADDR: shippingservice:50051
-      CHECKOUT_SERVICE_ADDR: checkoutservice:8080
+      CHECKOUT_SERVICE_ADDR: checkoutservice:5050
       CURRENCY_SERVICE_ADDR: currencyservice:7000
       AD_SERVICE_ADDR: adservice:9555
       EMAIL_SERVICE_ADDR: emailservice:8080
@@ -160,6 +166,21 @@ services:
     networks:
       - shopnet
 
+# ---------------------------------------------------------
+# REDIS SERVICE
+# ---------------------------------------------------------
+
+  redis:
+    image: redis:alpine
+    ports:
+    - "6379:6379"
+    networks:
+      - shopnet
+
+
 networks:
   shopnet:
     driver: bridge
+
+
+
