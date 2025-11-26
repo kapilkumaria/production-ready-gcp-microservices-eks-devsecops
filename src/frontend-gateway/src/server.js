@@ -1,5 +1,3 @@
-// src/server.js
-
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -16,16 +14,20 @@ import shippingRoutes from "./routes/shipping.js";
 import adRoutes from "./routes/ads.js";
 
 const app = express();
-app.use(cors());
+
+// FIX: allow cookies across nginx → gateway
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  })
+);
+
+app.use(cookieParser());
+app.use(userMiddleware);     // do NOT call as function
 app.use(express.json());
 
-// MUST come before userMiddleware
-app.use(cookieParser());
-
-// Attach/generate user_id cookie
-app.use(userMiddleware);
-
-// REST API routes
+// REST routes
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/images", imageRoutes);
