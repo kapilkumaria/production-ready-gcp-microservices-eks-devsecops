@@ -3,46 +3,39 @@ import { cartClient } from "../grpc-clients/cartclient.js";
 
 const router = express.Router();
 
-// UI CALL → GET /api/cart
 router.get("/", (req, res) => {
-  const user_id = "user1"; // static user
+  const user_id = req.userId;
+
   cartClient.GetCart({ user_id }, (err, response) => {
-    if (err) {
-      console.error("GetCart Error:", err);
-      return res.status(500).json({ error: err.message });
-    }
+    if (err) return res.status(500).json({ error: err.message });
     res.json(response);
   });
 });
 
-// UI CALL → POST /api/cart
 router.post("/", (req, res) => {
-  const user_id = "user1"; // static user
-  const { product_id, quantity } = req.body;
+  const user_id = req.userId;
+
+  let product_id = req.body.product_id || req.body.id;
+  let quantity = req.body.quantity || req.body.qty;
 
   const request = {
     user_id,
-    item: { product_id, quantity },
+    item: {
+      product_id,
+      quantity,
+    },
   };
 
   cartClient.AddItem(request, (err, response) => {
-    if (err) {
-      console.error("AddItem Error:", err);
-      return res.status(500).json({ error: err.message });
-    }
-
+    if (err) return res.status(500).json({ error: err.message });
     res.json({ message: "Item added", response });
   });
 });
 
-// UI CALL → POST /api/cart/empty
 router.post("/empty", (req, res) => {
-  const user_id = "user1";
+  const user_id = req.userId;
   cartClient.EmptyCart({ user_id }, (err, response) => {
-    if (err) {
-      console.error("EmptyCart Error:", err);
-      return res.status(500).json({ error: err.message });
-    }
+    if (err) return res.status(500).json({ error: err.message });
     res.json({ message: "Cart emptied", response });
   });
 });
