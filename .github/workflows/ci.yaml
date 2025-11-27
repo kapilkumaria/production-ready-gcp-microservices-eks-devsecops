@@ -1,3 +1,17 @@
+name: Microservices-CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REGISTRY: 931058976119.dkr.ecr.us-east-1.amazonaws.com
+  SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
 jobs:
 
   sonar:
@@ -22,8 +36,7 @@ jobs:
             "shippingservice",
             "recommendationservice",
             "loadgenerator"
-          ]    
-      
+          ]          
 
     steps:
 
