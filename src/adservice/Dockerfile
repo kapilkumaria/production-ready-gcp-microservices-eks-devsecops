@@ -5,4 +5,4 @@ WORKDIR /app
 COPY build/libs/adservice.jar app.jar
 
 EXPOSE 9555
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"] 
