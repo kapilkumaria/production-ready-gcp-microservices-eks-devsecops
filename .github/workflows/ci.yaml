@@ -34,10 +34,13 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
-      
-      - name: Verify SonarScanner
-        run: sonar-scanner --version
+        uses: actions/checkout@v4           
+
+      - name: Check sonar-scanner
+        run: |
+          which sonar-scanner
+          sonar-scanner --version
+
 
       - name: Run SonarQube Scan
         env:
