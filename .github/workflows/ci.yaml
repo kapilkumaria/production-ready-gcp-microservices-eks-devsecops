@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   sonar:
-    name: SonarQube Scan
+    name: Sonar + Tests + Coverage
     runs-on: self-hosted
 
     strategy:
@@ -54,9 +54,15 @@ jobs:
             language: python
 
     steps:
+      ###########################################################
+      #                     CHECK OUT CODE
+      ###########################################################
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      ###########################################################
+      #                 PREPARE SONAR SCANNER
+      ###########################################################
       - name: Add sonar-scanner to PATH
         run: echo "/opt/sonar-scanner/sonar-scanner/bin" >> $GITHUB_PATH
 
@@ -65,80 +71,95 @@ jobs:
           which sonar-scanner
           sonar-scanner --version
 
-      - name: Verify Java installed
+      ###########################################################
+      #             LANGUAGE-SPECIFIC PREPARATION
+      ###########################################################
+
+      # JAVA (adservice)
+      - name: Verify Java installation
         if: matrix.language == 'java'
         run: |
           java -version
           echo "JAVA_HOME=$JAVA_HOME"
 
-      ##################################################################
-      #                     LANGUAGE-SPECIFIC TESTS                    #
-      ##################################################################
-
-      # -------- JAVA (adservice) -------------
-      - name: Run Java Tests (JaCoCo)
-        if: matrix.language == 'java'
-        run: |
-          cd src/${{ matrix.service }}
-          ./gradlew clean test jacocoTestReport
-
-      # -------- NODE.js (gateway, ui, currency, payment) -------------
-      - name: Run Node.js Tests with Coverage
+      # NODE.js (currencyservice, gateway, ui, paymentservice)
+      - name: Setup Node.js tools
         if: matrix.language == 'node'
         run: |
           cd src/${{ matrix.service }}
           npm install
-          npm test -- --coverage
 
-      # -------- PYTHON SERVICES --------------
-      - name: Install Python deps
+      # PYTHON
+      - name: Install Python dependencies
         if: matrix.language == 'python'
         run: |
           cd src/${{ matrix.service }}
           pip install -r requirements.txt
           pip install pytest pytest-cov
 
-      - name: Run Python Tests w/ Coverage
+      # C#
+      - name: Install .NET SDK (if not present)
+        if: matrix.language == 'csharp'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y dotnet-sdk-8.0
+
+      ###########################################################
+      #              LANGUAGE-SPECIFIC TEST + COVERAGE
+      ###########################################################
+
+      # -------- JAVA (JaCoCo) ------------
+      - name: Run Java Tests
+        if: matrix.language == 'java'
+        run: |
+          cd src/${{ matrix.service }}
+          ./gradlew clean test jacocoTestReport
+
+      # -------- NODE.js ------------------
+      - name: Run Node.js Tests
+        if: matrix.language == 'node'
+        run: |
+          cd src/${{ matrix.service }}
+          npm test -- --coverage
+
+      # -------- PYTHON -------------------
+      - name: Run Python Tests
         if: matrix.language == 'python'
         run: |
           cd src/${{ matrix.service }}
           pytest --cov=. --cov-report=xml
 
-      # -------- GO SERVICES ------------------
+      # -------- GO -----------------------
       - name: Run Go Tests with Coverage
         if: matrix.language == 'go'
         run: |
           cd src/${{ matrix.service }}
           go test ./... -coverprofile=coverage.out
 
-      # -------- C# SERVICES (cartservice) ----
-      - name: Run .NET Tests with Coverage
+      # -------- C# -----------------------
+      - name: Run C# Tests with Coverage
         if: matrix.language == 'csharp'
         run: |
           cd src/${{ matrix.service }}
-          dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
+          dotnet test \
+            /p:CollectCoverage=true \
+            /p:CoverletOutput=./coverage.opencover.xml \
+            /p:CoverletOutputFormat=opencover
 
-      ##################################################################
-      #                       SONARQUBE SCAN                           #
-      ##################################################################
+      ###########################################################
+      #                  SONARQUBE SCAN + QG
+      ###########################################################
 
-      - name: Run SonarQube Scan
+      - name: Run SonarQube Scan (with Quality Gate)
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           cd src/${{ matrix.service }}
-
-          # Always include quality gate blocking
-          EXTRA_ARGS="-Dsonar.qualitygate.wait=true"
-
-          # Java binaries path only for adservice
-          if [ "${{ matrix.language }}" = "java" ]; then
-            EXTRA_ARGS="$EXTRA_ARGS -Dsonar.java.binaries=build/classes/java/main"
-          fi
 
           sonar-scanner \
             -Dsonar.projectKey=${{ matrix.service }} \
             -Dsonar.sources=. \
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
             -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
-            $EXTRA_ARGS
+            -Dsonar.qualitygate.wait=true \
+            $( [ "${{ matrix.language }}" = "java" ] && echo "-Dsonar.java.binaries=build/classes/java/main" )
