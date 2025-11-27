@@ -55,13 +55,13 @@ jobs:
 
     steps:
       ###########################################################
-      #                     CHECK OUT CODE
+      #                     CHECKOUT REPO
       ###########################################################
       - name: Checkout Code
         uses: actions/checkout@v4
 
       ###########################################################
-      #                 PREPARE SONAR SCANNER
+      #                   PREPARE SONAR SCANNER
       ###########################################################
       - name: Add sonar-scanner to PATH
         run: echo "/opt/sonar-scanner/sonar-scanner/bin" >> $GITHUB_PATH
@@ -72,25 +72,36 @@ jobs:
           sonar-scanner --version
 
       ###########################################################
-      #             LANGUAGE-SPECIFIC PREPARATION
+      #               FIX SELF-HOSTED GO PATH (IMPORTANT!)
+      ###########################################################
+      - name: Fix Go PATH
+        if: matrix.language == 'go'
+        run: |
+          echo "/usr/local/go/bin" >> $GITHUB_PATH
+
+      ###########################################################
+      #             LANGUAGE PREPARATION STEPS
       ###########################################################
 
-      # JAVA (adservice)
+      # JAVA
       - name: Verify Java installation
         if: matrix.language == 'java'
-        run: |
-          java -version
-          echo "JAVA_HOME=$JAVA_HOME"
+        run: java -version
 
-      # NODE.js (currencyservice, gateway, ui, paymentservice)
-      - name: Setup Node.js tools
-        if: matrix.language == 'node'
+      # NODE
+      - name: Install Node.js Dependencies
+        if: matrix.language == 'node' && matrix.service != 'currencyservice'
         run: |
           cd src/${{ matrix.service }}
           npm install
 
+      # Skip for currencyservice (no tests)
+      - name: Skip Node.js install (currencyservice)
+        if: matrix.language == 'node' && matrix.service == 'currencyservice'
+        run: echo "Skipping npm install — currencyservice has no tests"
+
       # PYTHON
-      - name: Install Python dependencies
+      - name: Install Python Deps
         if: matrix.language == 'python'
         run: |
           cd src/${{ matrix.service }}
@@ -98,45 +109,56 @@ jobs:
           pip install pytest pytest-cov
 
       # C#
-      - name: Install .NET SDK (if not present)
+      - name: Ensure .NET SDK 9 Installed
         if: matrix.language == 'csharp'
         run: |
-          sudo apt-get update
-          sudo apt-get install -y dotnet-sdk-8.0
+          if ! dotnet --version 2>/dev/null; then
+            echo "Installing .NET 9..."
+            wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
+            chmod +x dotnet-install.sh
+            sudo ./dotnet-install.sh --channel 9.0 --install-dir /usr/share/dotnet
+            sudo ln -sf /usr/share/dotnet/dotnet /usr/bin/dotnet
+          fi
+          dotnet --version
 
       ###########################################################
-      #              LANGUAGE-SPECIFIC TEST + COVERAGE
+      #                  TEST + COVERAGE PER LANGUAGE
       ###########################################################
 
-      # -------- JAVA (JaCoCo) ------------
+      # JAVA
       - name: Run Java Tests
         if: matrix.language == 'java'
         run: |
           cd src/${{ matrix.service }}
           ./gradlew clean test jacocoTestReport
 
-      # -------- NODE.js ------------------
-      - name: Run Node.js Tests
-        if: matrix.language == 'node'
+      # NODE (all except currencyservice)
+      - name: Run Node Tests with Coverage
+        if: matrix.language == 'node' && matrix.service != 'currencyservice'
         run: |
           cd src/${{ matrix.service }}
           npm test -- --coverage
 
-      # -------- PYTHON -------------------
+      # CURRENCY SERVICE (skip tests)
+      - name: Skip Node Tests for currencyservice
+        if: matrix.language == 'node' && matrix.service == 'currencyservice'
+        run: echo "Skipping tests — currencyservice has NO unit tests."
+
+      # PYTHON
       - name: Run Python Tests
         if: matrix.language == 'python'
         run: |
           cd src/${{ matrix.service }}
           pytest --cov=. --cov-report=xml
 
-      # -------- GO -----------------------
+      # GO
       - name: Run Go Tests with Coverage
         if: matrix.language == 'go'
         run: |
           cd src/${{ matrix.service }}
           go test ./... -coverprofile=coverage.out
 
-      # -------- C# -----------------------
+      # C#
       - name: Run C# Tests with Coverage
         if: matrix.language == 'csharp'
         run: |
@@ -147,19 +169,24 @@ jobs:
             /p:CoverletOutputFormat=opencover
 
       ###########################################################
-      #                  SONARQUBE SCAN + QG
+      #                  SONARQUBE ANALYSIS
       ###########################################################
-
-      - name: Run SonarQube Scan (with Quality Gate)
+      - name: Run SonarQube Scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           cd src/${{ matrix.service }}
+          
+          EXTRA_ARGS="-Dsonar.qualitygate.wait=true"
+
+          # Java-specific binary path
+          if [ "${{ matrix.language }}" = "java" ]; then
+            EXTRA_ARGS="$EXTRA_ARGS -Dsonar.java.binaries=build/classes/java/main"
+          fi
 
           sonar-scanner \
             -Dsonar.projectKey=${{ matrix.service }} \
             -Dsonar.sources=. \
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
             -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
-            -Dsonar.qualitygate.wait=true \
-            $( [ "${{ matrix.language }}" = "java" ] && echo "-Dsonar.java.binaries=build/classes/java/main" )
+            $EXTRA_ARGS
