@@ -165,6 +165,7 @@ jobs:
       # SONARQUBE ANALYSIS + QG
       ###########################################################
 
+      
       - name: Run SonarQube Scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -173,15 +174,15 @@ jobs:
 
           EXTRA_ARGS="-Dsonar.qualitygate.wait=true"
 
-          # Global exclusions (fixes LICENSE duplicate + generated code + reports)
-          EXTRA_ARGS="$EXTRA_ARGS -Dsonar.exclusions=LICENSE,build/generated/**,genproto/**,build/reports/**"
+          # Global exclusions (duplicate indexing fixes)
+          EXTRA_ARGS="$EXTRA_ARGS -Dsonar.exclusions=LICENSE,build/generated/**,genproto/**,build/reports/**,data/**"
 
-          # Java binaries
+          # Java specific binaries
           if [ "${{ matrix.language }}" = "java" ]; then
             EXTRA_ARGS="$EXTRA_ARGS -Dsonar.java.binaries=build/classes/java/main"
           fi
 
-          # Payment service fix (avoid JS duplicate detection)
+          # Skip JS test scanning for paymentservice (no tests)
           if [ "${{ matrix.service }}" = "paymentservice" ]; then
             EXTRA_ARGS="$EXTRA_ARGS -Dsonar.test.exclusions=**/*.js"
           fi
