@@ -131,15 +131,27 @@ jobs:
           ./gradlew clean test jacocoTestReport
 
       # ------------------ NODE ------------------
+      - name: Install Node dependencies
+        if: matrix.language == 'node' && matrix.service != 'currencyservice' && matrix.service != 'frontend-ui'
+        run: |
+          cd src/${{ matrix.service }}
+          npm install
+
+      - name: Skip Node dependency install (no tests)
+        if: matrix.language == 'node' && (matrix.service == 'currencyservice' || matrix.service == 'frontend-ui')
+        run: echo "Skipping npm install — this service has no tests."
+
+      # ------------------ NODE TESTS ------------------
       - name: Run Node Tests with Coverage
-        if: matrix.language == 'node' && matrix.service != 'currencyservice'
+        if: matrix.language == 'node' && matrix.service != 'currencyservice' && matrix.service != 'frontend-ui'
         run: |
           cd src/${{ matrix.service }}
           npm test -- --coverage
 
-      - name: Skip Node Tests for currencyservice
-        if: matrix.language == 'node' && matrix.service == 'currencyservice'
-        run: echo "Skipping tests — currencyservice has NO tests"
+      - name: Skip Node Tests (no tests available)
+        if: matrix.language == 'node' && (matrix.service == 'currencyservice' || matrix.service == 'frontend-ui')
+        run: echo "Skipping tests — this service has NO tests."
+
 
       # ------------------ PYTHON ------------------
       - name: Run Python Tests + Coverage
