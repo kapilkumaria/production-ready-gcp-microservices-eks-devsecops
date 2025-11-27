@@ -160,18 +160,20 @@ jobs:
           cd src/${{ matrix.service }}
           pytest --cov=. --cov-report=xml
 
-      # ------------------ GO ------------------
-      - name: Tidy Go Modules
-        if: matrix.language == 'go'
-        run: |
-          cd src/${{ matrix.service }}
-          go mod tidy
-
+      
+      # -------- GO -----------------------
       - name: Run Go Tests with Coverage
         if: matrix.language == 'go'
         run: |
           cd src/${{ matrix.service }}
+
+          echo "Running go mod tidy and vendor sync..."
+          go mod tidy
+          go mod vendor
+
+          echo "Running Go tests with coverage..."
           go test ./... -coverprofile=coverage.out
+
 
       # ------------------ C# ------------------
       - name: Run C# Tests + Coverage
