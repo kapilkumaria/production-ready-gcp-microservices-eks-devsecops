@@ -172,14 +172,16 @@ jobs:
           cd src/${{ matrix.service }}
 
           EXTRA_ARGS="-Dsonar.qualitygate.wait=true"
-          EXTRA_ARGS="$EXTRA_ARGS -Dsonar.exclusions=build/generated/**,genproto/**,build/reports/**"
 
-          # Java requires binaries path
+          # Global exclusions (fixes LICENSE duplicate + generated code + reports)
+          EXTRA_ARGS="$EXTRA_ARGS -Dsonar.exclusions=LICENSE,build/generated/**,genproto/**,build/reports/**"
+
+          # Java binaries
           if [ "${{ matrix.language }}" = "java" ]; then
             EXTRA_ARGS="$EXTRA_ARGS -Dsonar.java.binaries=build/classes/java/main"
           fi
 
-          # PAYMENT SERVICE FIX: prevent duplicate indexing
+          # Payment service fix (avoid JS duplicate detection)
           if [ "${{ matrix.service }}" = "paymentservice" ]; then
             EXTRA_ARGS="$EXTRA_ARGS -Dsonar.test.exclusions=**/*.js"
           fi
