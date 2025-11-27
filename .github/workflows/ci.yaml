@@ -2,9 +2,9 @@ name: Microservices-CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 permissions:
   contents: read
@@ -16,58 +16,129 @@ jobs:
 
     strategy:
       matrix:
-        service:
-          [
-            "checkoutservice",
-            "adservice",
-            "currencyservice",
-            "paymentservice",
-            "productcatalogservice",
-            "frontend-ui",
-            "frontend-gateway",
-            "cartservice",
-            "emailservice",
-            "shoppingassistantservice",
-            "shippingservice",
-            "recommendationservice"            
-          ]
+        include:
+          - service: checkoutservice
+            language: go
+
+          - service: adservice
+            language: java
+
+          - service: currencyservice
+            language: node
+
+          - service: paymentservice
+            language: node
+
+          - service: productcatalogservice
+            language: go
+
+          - service: frontend-ui
+            language: node
+
+          - service: frontend-gateway
+            language: node
+
+          - service: cartservice
+            language: csharp
+
+          - service: emailservice
+            language: python
+
+          - service: shoppingassistantservice
+            language: python
+
+          - service: shippingservice
+            language: go
+
+          - service: recommendationservice
+            language: python
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4           
+        uses: actions/checkout@v4
 
       - name: Add sonar-scanner to PATH
         run: echo "/opt/sonar-scanner/sonar-scanner/bin" >> $GITHUB_PATH
 
-      - name: Check sonar-scanner
+      - name: Verify sonar-scanner
         run: |
           which sonar-scanner
           sonar-scanner --version
 
       - name: Verify Java installed
+        if: matrix.language == 'java'
         run: |
           java -version
-          echo $JAVA_HOME
+          echo "JAVA_HOME=$JAVA_HOME"
 
-      - name: Build Java service (only adservice)
-        if: matrix.service == 'adservice'
+      ##################################################################
+      #                     LANGUAGE-SPECIFIC TESTS                    #
+      ##################################################################
+
+      # -------- JAVA (adservice) -------------
+      - name: Run Java Tests (JaCoCo)
+        if: matrix.language == 'java'
         run: |
-          cd src/adservice
-          ./gradlew compileJava -x shadowJar -x distZip -x distTar    
+          cd src/${{ matrix.service }}
+          ./gradlew clean test jacocoTestReport
+
+      # -------- NODE.js (gateway, ui, currency, payment) -------------
+      - name: Run Node.js Tests with Coverage
+        if: matrix.language == 'node'
+        run: |
+          cd src/${{ matrix.service }}
+          npm install
+          npm test -- --coverage
+
+      # -------- PYTHON SERVICES --------------
+      - name: Install Python deps
+        if: matrix.language == 'python'
+        run: |
+          cd src/${{ matrix.service }}
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+
+      - name: Run Python Tests w/ Coverage
+        if: matrix.language == 'python'
+        run: |
+          cd src/${{ matrix.service }}
+          pytest --cov=. --cov-report=xml
+
+      # -------- GO SERVICES ------------------
+      - name: Run Go Tests with Coverage
+        if: matrix.language == 'go'
+        run: |
+          cd src/${{ matrix.service }}
+          go test ./... -coverprofile=coverage.out
+
+      # -------- C# SERVICES (cartservice) ----
+      - name: Run .NET Tests with Coverage
+        if: matrix.language == 'csharp'
+        run: |
+          cd src/${{ matrix.service }}
+          dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
+
+      ##################################################################
+      #                       SONARQUBE SCAN                           #
+      ##################################################################
 
       - name: Run SonarQube Scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          EXTRA_ARGS=""
-          if [ "${{ matrix.service }}" = "adservice" ]; then
-            EXTRA_ARGS="-Dsonar.java.binaries=src/adservice/build/classes/java/main"
+          cd src/${{ matrix.service }}
+
+          # Always include quality gate blocking
+          EXTRA_ARGS="-Dsonar.qualitygate.wait=true"
+
+          # Java binaries path only for adservice
+          if [ "${{ matrix.language }}" = "java" ]; then
+            EXTRA_ARGS="$EXTRA_ARGS -Dsonar.java.binaries=build/classes/java/main"
           fi
 
           sonar-scanner \
             -Dsonar.projectKey=${{ matrix.service }} \
-            -Dsonar.sources=src/${{ matrix.service }} \
+            -Dsonar.sources=. \
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
             -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
             $EXTRA_ARGS
-
