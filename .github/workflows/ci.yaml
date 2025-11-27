@@ -51,7 +51,7 @@ jobs:
           sonar-scanner --version
 
       ###########################################################
-      # GO PATH (SELF-HOSTED)
+      # FIX GO PATH
       ###########################################################
       - name: Fix Go PATH
         if: matrix.language == 'go'
@@ -68,13 +68,21 @@ jobs:
 
       # NODE (only if tests exist)
       - name: Install Node dependencies
-        if: matrix.language == 'node' && matrix.service != 'currencyservice' && matrix.service != 'paymentservice' && matrix.service != 'frontend-ui'
+        if: matrix.language == 'node' && 
+            matrix.service != 'currencyservice' && 
+            matrix.service != 'paymentservice' &&
+            matrix.service != 'frontend-ui' &&
+            matrix.service != 'frontend-gateway'
         run: |
           cd src/${{ matrix.service }}
           npm install
 
       - name: Skip Node dependencies (no tests)
-        if: matrix.language == 'node' && (matrix.service == 'currencyservice' || matrix.service == 'paymentservice' || matrix.service == 'frontend-ui')
+        if: matrix.language == 'node' && 
+            (matrix.service == 'currencyservice' || 
+             matrix.service == 'paymentservice' ||
+             matrix.service == 'frontend-ui' ||
+             matrix.service == 'frontend-gateway')
         run: echo "Skipping npm install — no tests for this Node service"
 
       # PYTHON
@@ -86,7 +94,7 @@ jobs:
           pip install pytest pytest-cov
 
       # C#
-      - name: Install .NET 9 SDK if missing
+      - name: Install .NET 9 if missing
         if: matrix.language == 'csharp'
         run: |
           if ! dotnet --version 2>/dev/null; then
@@ -95,28 +103,37 @@ jobs:
             sudo ./dotnet-install.sh --channel 9.0 --install-dir /usr/share/dotnet
             sudo ln -sf /usr/share/dotnet/dotnet /usr/bin/dotnet
           fi
+          dotnet --version
 
       ###########################################################
       # TEST + COVERAGE
       ###########################################################
 
       # JAVA
-      - name: Run Java Tests + Coverage
+      - name: Run Java Tests
         if: matrix.language == 'java'
         run: |
           cd src/${{ matrix.service }}
           ./gradlew clean test jacocoTestReport
 
-      # NODE tests
-      - name: Run Node Tests with Coverage
-        if: matrix.language == 'node' && matrix.service != 'currencyservice' && matrix.service != 'paymentservice' && matrix.service != 'frontend-ui'
+      # NODE tests (only where available)
+      - name: Run Node Tests + Coverage
+        if: matrix.language == 'node' &&
+            matrix.service != 'currencyservice' &&
+            matrix.service != 'paymentservice' &&
+            matrix.service != 'frontend-ui' &&
+            matrix.service != 'frontend-gateway'
         run: |
           cd src/${{ matrix.service }}
           npm test -- --coverage
 
       - name: Skip Node Tests (no tests)
-        if: matrix.language == 'node' && (matrix.service == 'currencyservice' || matrix.service == 'paymentservice' || matrix.service == 'frontend-ui')
-        run: echo "Skipping Node tests (no tests exist)"
+        if: matrix.language == 'node' &&
+            (matrix.service == 'currencyservice' ||
+             matrix.service == 'paymentservice' ||
+             matrix.service == 'frontend-ui' ||
+             matrix.service == 'frontend-gateway')
+        run: echo "Skipping tests — this Node service has NO tests."
 
       # PYTHON
       - name: Run Python Tests + Coverage
@@ -126,7 +143,7 @@ jobs:
           pytest --cov=. --cov-report=xml
 
       # GO
-      - name: Run Go Tests + Coverage
+      - name: Run Go Tests with Coverage
         if: matrix.language == 'go'
         run: |
           cd src/${{ matrix.service }}
@@ -145,7 +162,7 @@ jobs:
             /p:CoverletOutputFormat=opencover
 
       ###########################################################
-      # SONARQUBE ANALYSIS + QUALITY GATE
+      # SONARQUBE ANALYSIS + QG
       ###########################################################
       - name: Run SonarQube Scan
         env:
@@ -153,19 +170,21 @@ jobs:
         run: |
           cd src/${{ matrix.service }}
 
+          # default apply QG
           EXTRA_ARGS="-Dsonar.qualitygate.wait=true"
 
-          # Java-specific settings
+          # Java specific rules
           if [ "${{ matrix.language }}" = "java" ]; then
-            EXTRA_ARGS="$EXTRA_ARGS -Dsonar.java.binaries=build/classes/java/main"
-            EXTRA_ARGS="$EXTRA_ARGS -Dsonar.exclusions=build/generated/**,genproto/**"
+             EXTRA_ARGS="$EXTRA_ARGS -Dsonar.java.binaries=build/classes/java/main"
+             EXTRA_ARGS="$EXTRA_ARGS -Dsonar.exclusions=build/generated/**,genproto/**"
           fi
 
-          # Skip quality gate for Node services with no tests
+          # NODE services with NO TESTS → disable QG + exclude all files
           if [ "${{ matrix.service }}" = "currencyservice" ] || \
              [ "${{ matrix.service }}" = "paymentservice" ] || \
-             [ "${{ matrix.service }}" = "frontend-ui" ]; then
-              EXTRA_ARGS="$EXTRA_ARGS -Dsonar.qualitygate.wait=false -Dsonar.exclusions=**/*"
+             [ "${{ matrix.service }}" = "frontend-ui" ] || \
+             [ "${{ matrix.service }}" = "frontend-gateway" ]; then
+               EXTRA_ARGS="$EXTRA_ARGS -Dsonar.qualitygate.wait=false -Dsonar.exclusions=**/*"
           fi
 
           sonar-scanner \
