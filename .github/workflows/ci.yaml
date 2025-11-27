@@ -35,10 +35,9 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-
-      - name: Install SonarScanner
-        run: |
-          brew install sonar-scanner
+      
+      - name: Verify SonarScanner
+        run: sonar-scanner --version
 
       - name: Run SonarQube Scan
         env:
