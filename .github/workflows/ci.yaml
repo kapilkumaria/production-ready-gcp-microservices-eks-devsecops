@@ -15,44 +15,41 @@ env:
 jobs:
 
   sonar:
-    name: SonarQube Scan
-    runs-on: ubuntu-latest
+  name: SonarQube Scan
+  runs-on: ubuntu-latest
 
-    strategy:
-      
-      matrix:
-        service:
-          [
-            "checkoutservice",
-            "adservice",
-            "currencyservice",
-            "paymentservice",
-            "productcatalogservice",
-            "frontend-ui",
-            "frontend-gateway",
-            "cartservice",
-            "emailservice",
-            "shoppingassistantservice",
-            "shippingservice",
-            "recommendationservice",
-            "loadgenerator"
-          ]          
+  strategy:
+    matrix:
+      service:
+        [
+          "checkoutservice",
+          "adservice",
+          "currencyservice",
+          "paymentservice",
+          "productcatalogservice",
+          "frontend-ui",
+          "frontend-gateway",
+          "cartservice",
+          "emailservice",
+          "shoppingassistantservice",
+          "shippingservice",
+          "recommendationservice",
+          "loadgenerator"
+        ]
 
-    steps:
+  steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
 
-      - name: Checkout Code
-        uses: actions/checkout@v4
+    - name: Setup SonarScanner
+      uses: SonarSource/sonarcloud-github-action@master
 
-      - name: Install SonarScanner
-        run: |
-          wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.zip
-          unzip sonar-scanner-cli-5.0.1.zip
-          mv sonar-scanner-5.0.1 sonar
-
-      - name: Run SonarQube Scan
-        run: |
-          ./sonar/bin/sonar-scanner \
-            -Dsonar.projectKey=${{ matrix.service }} \
-            -Dsonar.sources=${{ matrix.service }} \
-            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+    - name: Run SonarQube Scan
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      run: |
+        sonar-scanner \
+          -Dsonar.projectKey=${{ matrix.service }} \
+          -Dsonar.sources=src/${{ matrix.service }} \
+          -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
