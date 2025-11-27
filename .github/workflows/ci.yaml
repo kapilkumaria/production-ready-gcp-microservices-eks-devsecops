@@ -12,7 +12,7 @@ permissions:
 jobs:
   sonar:
     name: SonarQube Scan
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     strategy:
       matrix:
