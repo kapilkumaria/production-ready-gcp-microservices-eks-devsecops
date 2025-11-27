@@ -29,8 +29,7 @@ jobs:
             "emailservice",
             "shoppingassistantservice",
             "shippingservice",
-            "recommendationservice",
-            "loadgenerator"
+            "recommendationservice"            
           ]
 
     steps:
