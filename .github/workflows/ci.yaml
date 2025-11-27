@@ -72,48 +72,46 @@ jobs:
           sonar-scanner --version
 
       ###########################################################
-      #               FIX SELF-HOSTED GO PATH (IMPORTANT!)
+      #               FIX GO PATH FOR SELF-HOSTED RUNNER
       ###########################################################
       - name: Fix Go PATH
         if: matrix.language == 'go'
-        run: |
-          echo "/usr/local/go/bin" >> $GITHUB_PATH
+        run: echo "/usr/local/go/bin" >> $GITHUB_PATH
 
       ###########################################################
-      #             LANGUAGE PREPARATION STEPS
+      #                    PREPARE LANGUAGES
       ###########################################################
 
-      # JAVA
+      # ------------------ JAVA ------------------
       - name: Verify Java installation
         if: matrix.language == 'java'
         run: java -version
 
-      # NODE
-      - name: Install Node.js Dependencies
+      # ------------------ NODE ------------------
+      - name: Install Node dependencies
         if: matrix.language == 'node' && matrix.service != 'currencyservice'
         run: |
           cd src/${{ matrix.service }}
           npm install
 
-      # Skip for currencyservice (no tests)
-      - name: Skip Node.js install (currencyservice)
+      - name: Skip Node dependencies for currencyservice
         if: matrix.language == 'node' && matrix.service == 'currencyservice'
-        run: echo "Skipping npm install — currencyservice has no tests"
+        run: echo "Skipping Node installation — currencyservice has no tests"
 
-      # PYTHON
-      - name: Install Python Deps
+      # ------------------ PYTHON ------------------
+      - name: Install Python dependencies
         if: matrix.language == 'python'
         run: |
           cd src/${{ matrix.service }}
           pip install -r requirements.txt
           pip install pytest pytest-cov
 
-      # C#
-      - name: Ensure .NET SDK 9 Installed
+      # ------------------ C# ------------------
+      - name: Install .NET 9 if missing
         if: matrix.language == 'csharp'
         run: |
           if ! dotnet --version 2>/dev/null; then
-            echo "Installing .NET 9..."
+            echo "Installing .NET 9 SDK"
             wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
             chmod +x dotnet-install.sh
             sudo ./dotnet-install.sh --channel 9.0 --install-dir /usr/share/dotnet
@@ -122,44 +120,49 @@ jobs:
           dotnet --version
 
       ###########################################################
-      #                  TEST + COVERAGE PER LANGUAGE
+      #                  LANGUAGE TESTS + COVERAGE
       ###########################################################
 
-      # JAVA
-      - name: Run Java Tests
+      # ------------------ JAVA ------------------
+      - name: Run Java Tests + Coverage
         if: matrix.language == 'java'
         run: |
           cd src/${{ matrix.service }}
           ./gradlew clean test jacocoTestReport
 
-      # NODE (all except currencyservice)
+      # ------------------ NODE ------------------
       - name: Run Node Tests with Coverage
         if: matrix.language == 'node' && matrix.service != 'currencyservice'
         run: |
           cd src/${{ matrix.service }}
           npm test -- --coverage
 
-      # CURRENCY SERVICE (skip tests)
       - name: Skip Node Tests for currencyservice
         if: matrix.language == 'node' && matrix.service == 'currencyservice'
-        run: echo "Skipping tests — currencyservice has NO unit tests."
+        run: echo "Skipping tests — currencyservice has NO tests"
 
-      # PYTHON
-      - name: Run Python Tests
+      # ------------------ PYTHON ------------------
+      - name: Run Python Tests + Coverage
         if: matrix.language == 'python'
         run: |
           cd src/${{ matrix.service }}
           pytest --cov=. --cov-report=xml
 
-      # GO
+      # ------------------ GO ------------------
+      - name: Tidy Go Modules
+        if: matrix.language == 'go'
+        run: |
+          cd src/${{ matrix.service }}
+          go mod tidy
+
       - name: Run Go Tests with Coverage
         if: matrix.language == 'go'
         run: |
           cd src/${{ matrix.service }}
           go test ./... -coverprofile=coverage.out
 
-      # C#
-      - name: Run C# Tests with Coverage
+      # ------------------ C# ------------------
+      - name: Run C# Tests + Coverage
         if: matrix.language == 'csharp'
         run: |
           cd src/${{ matrix.service }}
@@ -169,17 +172,17 @@ jobs:
             /p:CoverletOutputFormat=opencover
 
       ###########################################################
-      #                  SONARQUBE ANALYSIS
+      #                  SONARQUBE ANALYSIS + QG
       ###########################################################
       - name: Run SonarQube Scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           cd src/${{ matrix.service }}
-          
+
           EXTRA_ARGS="-Dsonar.qualitygate.wait=true"
 
-          # Java-specific binary path
+          # Java requires explicit binaries path
           if [ "${{ matrix.language }}" = "java" ]; then
             EXTRA_ARGS="$EXTRA_ARGS -Dsonar.java.binaries=build/classes/java/main"
           fi
