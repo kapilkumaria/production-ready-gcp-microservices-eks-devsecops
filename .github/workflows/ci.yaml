@@ -6,50 +6,46 @@ on:
   pull_request:
     branches: [ "main" ]
 
-env:
-  AWS_REGION: us-east-1
-  ECR_REGISTRY: 931058976119.dkr.ecr.us-east-1.amazonaws.com
-  SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+permissions:
+  contents: read
 
 jobs:
-
   sonar:
-  name: SonarQube Scan
-  runs-on: ubuntu-latest
+    name: SonarQube Scan
+    runs-on: ubuntu-latest
 
-  strategy:
-    matrix:
-      service:
-        [
-          "checkoutservice",
-          "adservice",
-          "currencyservice",
-          "paymentservice",
-          "productcatalogservice",
-          "frontend-ui",
-          "frontend-gateway",
-          "cartservice",
-          "emailservice",
-          "shoppingassistantservice",
-          "shippingservice",
-          "recommendationservice",
-          "loadgenerator"
-        ]
+    strategy:
+      matrix:
+        service:
+          [
+            "checkoutservice",
+            "adservice",
+            "currencyservice",
+            "paymentservice",
+            "productcatalogservice",
+            "frontend-ui",
+            "frontend-gateway",
+            "cartservice",
+            "emailservice",
+            "shoppingassistantservice",
+            "shippingservice",
+            "recommendationservice",
+            "loadgenerator"
+          ]
 
-  steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    - name: Setup SonarScanner
-      uses: SonarSource/sonarcloud-github-action@master
+      - name: Setup SonarScanner
+        uses: SonarSource/sonarcloud-github-action@master
 
-    - name: Run SonarQube Scan
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      run: |
-        sonar-scanner \
-          -Dsonar.projectKey=${{ matrix.service }} \
-          -Dsonar.sources=src/${{ matrix.service }} \
-          -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
-          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+      - name: Run SonarQube Scan
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          sonar-scanner \
+            -Dsonar.projectKey=${{ matrix.service }} \
+            -Dsonar.sources=src/${{ matrix.service }} \
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
