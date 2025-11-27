@@ -44,6 +44,10 @@ jobs:
           which sonar-scanner
           sonar-scanner --version
 
+      - name: Verify Java installed
+        run: |
+          java -version
+          echo $JAVA_HOME
 
       - name: Build Java service (only adservice)
         if: matrix.service == 'adservice'
