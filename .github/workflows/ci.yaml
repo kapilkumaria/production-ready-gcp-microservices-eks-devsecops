@@ -45,12 +45,25 @@ jobs:
           sonar-scanner --version
 
 
+      - name: Build Java service (only adservice)
+        if: matrix.service == 'adservice'
+        run: |
+          cd src/adservice
+          ./gradlew build -x test
+
       - name: Run SonarQube Scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
+          EXTRA_ARGS=""
+          if [ "${{ matrix.service }}" = "adservice" ]; then
+            EXTRA_ARGS="-Dsonar.java.binaries=src/adservice/build/classes/java/main"
+          fi
+
           sonar-scanner \
             -Dsonar.projectKey=${{ matrix.service }} \
             -Dsonar.sources=src/${{ matrix.service }} \
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
+            $EXTRA_ARGS
+
