@@ -55,13 +55,13 @@ jobs:
 
     steps:
       ###########################################################
-      #                     CHECKOUT REPO
+      # CHECKOUT
       ###########################################################
       - name: Checkout Code
         uses: actions/checkout@v4
 
       ###########################################################
-      #                   PREPARE SONAR SCANNER
+      # SONAR SCANNER
       ###########################################################
       - name: Add sonar-scanner to PATH
         run: echo "/opt/sonar-scanner/sonar-scanner/bin" >> $GITHUB_PATH
@@ -72,39 +72,33 @@ jobs:
           sonar-scanner --version
 
       ###########################################################
-      #               FIX GO PATH FOR SELF-HOSTED RUNNER
+      # GO FIX PATH (SELF-HOSTED)
       ###########################################################
       - name: Fix Go PATH
         if: matrix.language == 'go'
         run: echo "/usr/local/go/bin" >> $GITHUB_PATH
 
       ###########################################################
-      #                    PREPARE LANGUAGES
+      # LANGUAGE PREP
       ###########################################################
 
-      # ------------------ JAVA ------------------
+      # -------- JAVA --------
       - name: Verify Java installation
         if: matrix.language == 'java'
         run: java -version
 
-      # ------------------ NODE ------------------
-      - name: Install Node dependencies (valid test services)
-        if: matrix.language == 'node' &&
-            matrix.service != 'currencyservice' &&
-            matrix.service != 'frontend-ui' &&
-            matrix.service != 'paymentservice'
+      # -------- NODE --------
+      - name: Install Node dependencies (only services with tests)
+        if: matrix.language == 'node' && matrix.service != 'currencyservice' && matrix.service != 'paymentservice' && matrix.service != 'frontend-ui'
         run: |
           cd src/${{ matrix.service }}
           npm install
 
-      - name: Skip Node dependencies (no test services)
-        if: matrix.language == 'node' &&
-           (matrix.service == 'currencyservice' ||
-            matrix.service == 'frontend-ui' ||
-            matrix.service == 'paymentservice')
-        run: echo "Skipping npm install — ${{ matrix.service }} has no tests"
+      - name: Skip Node dependencies (no tests)
+        if: matrix.language == 'node' && (matrix.service == 'currencyservice' || matrix.service == 'paymentservice' || matrix.service == 'frontend-ui')
+        run: echo "Skipping npm install — no tests available."
 
-      # ------------------ PYTHON ------------------
+      # -------- PYTHON --------
       - name: Install Python dependencies
         if: matrix.language == 'python'
         run: |
@@ -112,7 +106,7 @@ jobs:
           pip install -r requirements.txt
           pip install pytest pytest-cov
 
-      # ------------------ C# ------------------
+      # -------- C# --------
       - name: Install .NET 9 if missing
         if: matrix.language == 'csharp'
         run: |
@@ -126,42 +120,36 @@ jobs:
           dotnet --version
 
       ###########################################################
-      #                  LANGUAGE TESTS + COVERAGE
+      # TEST + COVERAGE
       ###########################################################
 
-      # ------------------ JAVA ------------------
+      # -------- JAVA --------
       - name: Run Java Tests + Coverage
         if: matrix.language == 'java'
         run: |
           cd src/${{ matrix.service }}
           ./gradlew clean test jacocoTestReport
 
-      # ------------------ NODE TESTS ------------------
-      - name: Run Node Tests with Coverage
-        if: matrix.language == 'node' &&
-            matrix.service != 'currencyservice' &&
-            matrix.service != 'frontend-ui' &&
-            matrix.service != 'paymentservice'
+      # -------- NODE --------
+      - name: Run Node Tests
+        if: matrix.language == 'node' && matrix.service != 'currencyservice' && matrix.service != 'paymentservice' && matrix.service != 'frontend-ui'
         run: |
           cd src/${{ matrix.service }}
           npm test -- --coverage
 
       - name: Skip Node Tests (no tests available)
-        if: matrix.language == 'node' &&
-           (matrix.service == 'currencyservice' ||
-            matrix.service == 'frontend-ui' ||
-            matrix.service == 'paymentservice')
-        run: echo "Skipping tests — ${{ matrix.service }} has NO tests."
+        if: matrix.language == 'node' && (matrix.service == 'currencyservice' || matrix.service == 'paymentservice' || matrix.service == 'frontend-ui')
+        run: echo "Skipping tests — no Node tests exist."
 
-      # ------------------ PYTHON ------------------
+      # -------- PYTHON --------
       - name: Run Python Tests + Coverage
         if: matrix.language == 'python'
         run: |
           cd src/${{ matrix.service }}
           pytest --cov=. --cov-report=xml
 
-      # ------------------ GO ------------------
-      - name: Run Go Tests with Coverage
+      # -------- GO --------
+      - name: Run Go Tests + Coverage
         if: matrix.language == 'go'
         run: |
           cd src/${{ matrix.service }}
@@ -169,7 +157,7 @@ jobs:
           go mod vendor
           go test ./... -coverprofile=coverage.out
 
-      # ------------------ C# ------------------
+      # -------- C# --------
       - name: Run C# Tests + Coverage
         if: matrix.language == 'csharp'
         run: |
@@ -180,7 +168,7 @@ jobs:
             /p:CoverletOutputFormat=opencover
 
       ###########################################################
-      #                  SONARQUBE ANALYSIS + QG
+      # SONARQUBE SCAN + QUALITY GATE
       ###########################################################
       - name: Run SonarQube Scan
         env:
@@ -188,11 +176,13 @@ jobs:
         run: |
           cd src/${{ matrix.service }}
 
+          # default arguments
           EXTRA_ARGS="-Dsonar.qualitygate.wait=true"
 
-          # Java requires explicit binaries path
+          # Java: add binaries + exclude generated proto files
           if [ "${{ matrix.language }}" = "java" ]; then
             EXTRA_ARGS="$EXTRA_ARGS -Dsonar.java.binaries=build/classes/java/main"
+            EXTRA_ARGS="$EXTRA_ARGS -Dsonar.exclusions=build/generated/**,genproto/**"
           fi
 
           sonar-scanner \
