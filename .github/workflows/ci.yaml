@@ -71,11 +71,11 @@ jobs:
         run: |
           SERVICE="${{ matrix.service }}"
 
-          # Default Dockerfile location
+          # Default paths
           DOCKERFILE="src/$SERVICE/Dockerfile"
           CONTEXT="src/$SERVICE"
 
-          # Special case for cartservice (.NET)
+          # Special case: cartservice (.NET)
           if [ "$SERVICE" = "cartservice" ]; then
             DOCKERFILE="src/cartservice/src/Dockerfile"
             CONTEXT="src/cartservice/src"
@@ -87,7 +87,6 @@ jobs:
             exit 0
           fi
 
-          # Validate Dockerfile exists
           if [ -f "$DOCKERFILE" ]; then
             echo "dockerfile=$DOCKERFILE" >> $GITHUB_OUTPUT
             echo "context=$CONTEXT" >> $GITHUB_OUTPUT
@@ -105,39 +104,64 @@ jobs:
           SERVICE="${{ matrix.service }}"
           DOCKERFILE="${{ steps.pathcheck.outputs.dockerfile }}"
           CONTEXT="${{ steps.pathcheck.outputs.context }}"
-          IMAGE_NAME="${SERVICE}:latest"
+          IMAGE="${SERVICE}:latest"
 
-          echo "🔥 Building Docker image for $SERVICE"
-          echo "📁 Dockerfile: $DOCKERFILE"
+          echo "🔥 Building image: $IMAGE"
+          echo "📄 Dockerfile: $DOCKERFILE"
           echo "📂 Context: $CONTEXT"
 
-          docker build \
-            -t $IMAGE_NAME \
-            -f $DOCKERFILE \
-            $CONTEXT
+          docker build -t $IMAGE -f $DOCKERFILE $CONTEXT
 
       ############################################################
-      # 6. TRIVY SCAN + SHOW RESULTS IN ACTIONS UI
+      # 6. TRIVY SCAN + PROFESSIONAL SUMMARY
       ############################################################
-      - name: Run Trivy Image Scan
+      - name: Trivy Scan (Professional Output)
         if: steps.pathcheck.outputs.found == 'true'
         id: trivy
         run: |
           SERVICE="${{ matrix.service }}"
-          IMAGE_NAME="${SERVICE}:latest"
-          REPORT="trivy-${SERVICE}.txt"
+          IMAGE="${SERVICE}:latest"
 
           mkdir -p trivy-reports
 
+          # Full table report
           trivy image \
             --format table \
-            -o trivy-reports/$REPORT \
-            $IMAGE_NAME || true
+            -o trivy-reports/${SERVICE}.txt \
+            $IMAGE || true
 
-          echo "### 🛡 Trivy Scan Results for ${SERVICE}" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          cat trivy-reports/$REPORT >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          # JSON report for severity parsing
+          trivy image \
+            --format json \
+            -o trivy-reports/${SERVICE}.json \
+            $IMAGE || true
+
+          # Extract severity counts
+          CRIT=$(jq '.Results[].Vulnerabilities[]? | select(.Severity=="CRITICAL") | .Severity' trivy-reports/${SERVICE}.json | wc -l)
+          HIGH=$(jq '.Results[].Vulnerabilities[]? | select(.Severity=="HIGH") | .Severity' trivy-reports/${SERVICE}.json | wc -l)
+          MED=$(jq '.Results[].Vulnerabilities[]? | select(.Severity=="MEDIUM") | .Severity' trivy-reports/${SERVICE}.json | wc -l)
+          LOW=$(jq '.Results[].Vulnerabilities[]? | select(.Severity=="LOW") | .Severity' trivy-reports/${SERVICE}.json | wc -l)
+
+          # Write professional summary
+          {
+            echo "## 🛡 Trivy Security Scan — $SERVICE"
+            echo "**Image:** \`$IMAGE\`"
+            echo ""
+            echo "### 🔢 Vulnerability Summary"
+            echo "| Severity | Count |"
+            echo "|----------|-------|"
+            echo "| 🔥 CRITICAL | $CRIT |"
+            echo "| ❤️ HIGH | $HIGH |"
+            echo "| 💛 MEDIUM | $MED |"
+            echo "| 💙 LOW | $LOW |"
+            echo ""
+            echo "<details><summary><strong>🔍 Full Report (Click to Expand)</strong></summary>"
+            echo ""
+            echo "\`\`\`"
+            cat trivy-reports/${SERVICE}.txt
+            echo "\`\`\`"
+            echo "</details>"
+          } >> $GITHUB_STEP_SUMMARY
 
       ############################################################
       # 7. UPLOAD TRIVY REPORT ARTIFACT
@@ -147,7 +171,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: trivy-${{ matrix.service }}
-          path: trivy-reports/trivy-${{ matrix.service }}.txt
+          path: trivy-reports/
 
       ############################################################
       # 8. DOCKER CLEANUP
@@ -155,5 +179,4 @@ jobs:
       - name: Cleanup Docker Image
         if: steps.pathcheck.outputs.found == 'true'
         run: |
-          SERVICE="${{ matrix.service }}"
-          docker rmi "${SERVICE}:latest" || true
+          docker rmi "${{ matrix.service }}:latest" || true
