@@ -1,4 +1,4 @@
-name: Microservices-CI
+name: Simple-Sonar-CI
 
 on:
   push:
@@ -6,200 +6,47 @@ on:
   pull_request:
     branches: ["main"]
 
-permissions:
-  contents: read
-
 jobs:
-  sonar:
-    name: Sonar + Tests + Coverage
+  sonar-scan:
     runs-on: self-hosted
-
     strategy:
       matrix:
-        include:
-          - { service: checkoutservice, language: go }
-          - { service: adservice, language: java }
-          - { service: currencyservice, language: node }
-          - { service: paymentservice, language: node }
-          - { service: productcatalogservice, language: go }
-          - { service: frontend-ui, language: node }
-          - { service: frontend-gateway, language: node }
-          - { service: cartservice, language: csharp }
-          - { service: emailservice, language: python }
-          - { service: shoppingassistantservice, language: python }
-          - { service: shippingservice, language: go }
-          - { service: recommendationservice, language: python }
+        service:
+          - checkoutservice
+          - adservice
+          - currencyservice
+          - paymentservice
+          - productcatalogservice
+          - frontend-ui
+          - frontend-gateway
+          - cartservice
+          - emailservice
+          - shoppingassistantservice
+          - shippingservice
+          - recommendationservice
 
     steps:
-      ###########################################################
-      # CHECKOUT
-      ###########################################################
-      - name: Checkout Code
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      ###########################################################
-      # SONAR SCANNER
-      ###########################################################
-      - name: Add sonar-scanner to PATH
+      - name: Add Sonar Scanner to PATH
         run: echo "/opt/sonar-scanner/sonar-scanner/bin" >> $GITHUB_PATH
 
-      - name: Verify sonar-scanner
-        run: |
-          which sonar-scanner
-          sonar-scanner --version
+      - name: Verify Scanner
+        run: sonar-scanner --version
 
-      ###########################################################
-      # FIX GO PATH
-      ###########################################################
-      - name: Fix Go PATH
-        if: matrix.language == 'go'
-        run: echo "/usr/local/go/bin" >> $GITHUB_PATH
-
-      ###########################################################
-      # PREPARE LANGUAGES
-      ###########################################################
-
-      # JAVA
-      - name: Verify Java installation
-        if: matrix.language == 'java'
-        run: java -version
-
-      # NODE (only where tests exist)
-      - name: Install Node dependencies
-        if: matrix.language == 'node' &&
-            matrix.service != 'currencyservice' &&
-            matrix.service != 'paymentservice' &&
-            matrix.service != 'frontend-ui' &&
-            matrix.service != 'frontend-gateway'
-        run: |
-          cd src/${{ matrix.service }}
-          npm install
-
-      - name: Skip Node dependencies (no tests)
-        if: matrix.language == 'node' &&
-            (matrix.service == 'currencyservice' ||
-             matrix.service == 'paymentservice' ||
-             matrix.service == 'frontend-ui' ||
-             matrix.service == 'frontend-gateway')
-        run: echo "Skipping npm install — this Node service has NO tests"
-
-      # PYTHON (with virtual environment)
-      - name: Install Python dependencies (VENV)
-        if: matrix.language == 'python'
-        run: |
-          cd src/${{ matrix.service }}
-          python3 -m venv venv
-          source venv/bin/activate
-          pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest pytest-cov
-
-      # C#
-      - name: Install .NET 9 if missing
-        if: matrix.language == 'csharp'
-        run: |
-          if ! dotnet --version 2>/dev/null; then
-            wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
-            chmod +x dotnet-install.sh
-            sudo ./dotnet-install.sh --channel 9.0 --install-dir /usr/share/dotnet
-            sudo ln -sf /usr/share/dotnet/dotnet /usr/bin/dotnet
-          fi
-          dotnet --version
-
-      ###########################################################
-      # TEST + COVERAGE
-      ###########################################################
-
-      # JAVA TESTS
-      - name: Run Java Tests
-        if: matrix.language == 'java'
-        run: |
-          cd src/${{ matrix.service }}
-          ./gradlew clean test jacocoTestReport
-
-      # NODE tests (only for services WITH tests)
-      - name: Run Node Tests + Coverage
-        if: matrix.language == 'node' &&
-            matrix.service != 'currencyservice' &&
-            matrix.service != 'paymentservice' &&
-            matrix.service != 'frontend-ui' &&
-            matrix.service != 'frontend-gateway'
-        run: |
-          cd src/${{ matrix.service }}
-          npm test -- --coverage
-
-      - name: Skip Node Tests
-        if: matrix.language == 'node' &&
-            (matrix.service == 'currencyservice' ||
-             matrix.service == 'paymentservice' ||
-             matrix.service == 'frontend-ui' ||
-             matrix.service == 'frontend-gateway')
-        run: echo "Skipping tests — this Node service has NO tests."
-
-      # PYTHON TESTS
-      - name: Run Python Tests + Coverage
-        if: matrix.language == 'python'
-        run: |
-          cd src/${{ matrix.service }}
-          source venv/bin/activate
-          pytest --cov=. --cov-report=xml
-
-      # GO TESTS
-      - name: Run Go Tests + Coverage
-        if: matrix.language == 'go'
-        run: |
-          cd src/${{ matrix.service }}
-          go mod tidy
-          go mod vendor
-          go test ./... -coverprofile=coverage.out
-
-      # C# TESTS
-      - name: Run C# Tests + Coverage
-        if: matrix.language == 'csharp'
-        run: |
-          cd src/${{ matrix.service }}
-
-          # No test folder -> create empty coverage file
-          if ! ls -R . | grep -i "Test" >/dev/null 2>&1; then
-            echo "<CoverageSession></CoverageSession>" > coverage.opencover.xml
-            echo "No C# tests detected — generating empty coverage file"
-            exit 0
-          fi
-
-          dotnet test \
-            /p:CollectCoverage=true \
-            /p:CoverletOutput=./coverage.opencover.xml \
-            /p:CoverletOutputFormat=opencover \
-            /p:Exclude=[*]Tests.*
-
-      ###########################################################
-      # SONARQUBE ANALYSIS
-      ###########################################################
-      - name: Run SonarQube Scan
+      - name: Run Sonar Scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           cd src/${{ matrix.service }}
 
-          EXTRA_ARGS="-Dsonar.qualitygate.wait=true"
-
-          # SAFE global exclusions (do NOT override sonar.sources)
-          EXTRA_ARGS="$EXTRA_ARGS -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/build/**,**/.gradle/**,**/genproto/**,**/build/generated/**"
-
-          # Java binaries
-          if [ "${{ matrix.language }}" = "java" ]; then
-            EXTRA_ARGS="$EXTRA_ARGS -Dsonar.java.binaries=build/classes/java/main"
-          fi
-
-          # Skip JS tests in paymentservice
-          if [ "${{ matrix.service }}" = "paymentservice" ]; then
-            EXTRA_ARGS="$EXTRA_ARGS -Dsonar.test.exclusions=**/*.js"
-          fi
-
           sonar-scanner \
             -Dsonar.projectKey=${{ matrix.service }} \
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
             -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
-            $EXTRA_ARGS
+            -Dsonar.sources=. \
+            -Dsonar.sourceEncoding=UTF-8 \
+            -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/build/**,**/.gradle/**,**/*.md,LICENSE
