@@ -64,46 +64,77 @@ jobs:
             -Dsonar.exclusions="**/node_modules/**,**/dist/**,**/build/**,**/obj/**,**/bin/**,**/.gradle/**,**/*.md,LICENSE"
 
       ###############################################
-      # 4. DOCKER BUILD
+      # 4. DETERMINE DOCKERFILE PATH
+      ###############################################
+      - name: Determine Dockerfile Path
+        id: pathcheck
+        run: |
+          SERVICE="${{ matrix.service }}"
+
+          # Default path
+          DOCKERFILE_PATH="src/${SERVICE}/Dockerfile"
+
+          # Special case for cartservice
+          if [ "$SERVICE" = "cartservice" ]; then
+            DOCKERFILE_PATH="src/cartservice/src/Dockerfile"
+          fi
+
+          # frontend-gateway has NO Dockerfile
+          if [ "$SERVICE" = "frontend-gateway" ]; then
+            echo "found=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Check if Dockerfile actually exists
+          if [ -f "$DOCKERFILE_PATH" ]; then
+            echo "dockerfile=$DOCKERFILE_PATH" >> $GITHUB_OUTPUT
+            echo "found=true" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Dockerfile missing for $SERVICE — skipping build"
+            echo "found=false" >> $GITHUB_OUTPUT
+          fi
+
+      ###############################################
+      # 5. BUILD DOCKER IMAGE (ONLY IF DOCKERFILE EXISTS)
       ###############################################
       - name: Build Docker Image
+        if: steps.pathcheck.outputs.found == 'true'
         run: |
-          cd src/${{ matrix.service }}
+          DOCKERFILE="${{ steps.pathcheck.outputs.dockerfile }}"
+          SERVICE="${{ matrix.service }}"
+          IMAGE_NAME="${SERVICE}:latest"
 
-          IMAGE_NAME="${{ matrix.service }}:latest"
-          echo "🔥 Building Docker image: $IMAGE_NAME"
-
-          docker build -t $IMAGE_NAME .
+          echo "🔥 Building Docker image for $SERVICE using $DOCKERFILE"
+          docker build -t $IMAGE_NAME -f $DOCKERFILE .
 
       ###############################################
-      # 5. TRIVY SCAN (Image)
+      # 6. TRIVY SCAN (ONLY IF DOCKERFILE EXISTS)
       ###############################################
       - name: Run Trivy Image Scan
+        if: steps.pathcheck.outputs.found == 'true'
         run: |
-          cd src/${{ matrix.service }}
-
-          IMAGE_NAME="${{ matrix.service }}:latest"
-          REPORT_FILE="trivy-${{ matrix.service }}.txt"
+          SERVICE="${{ matrix.service }}"
+          IMAGE_NAME="${SERVICE}:latest"
 
           mkdir -p trivy-reports
-
-          echo "🛡 Running Trivy scan on $IMAGE_NAME"
-          trivy image --format table -o trivy-reports/$REPORT_FILE $IMAGE_NAME || true
+          trivy image --format table -o trivy-reports/${SERVICE}.txt $IMAGE_NAME || true
 
       ###############################################
-      # 6. UPLOAD TRIVY SCAN REPORT (Artifact)
+      # 7. UPLOAD TRIVY REPORT
       ###############################################
       - name: Upload Trivy Report
+        if: steps.pathcheck.outputs.found == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: trivy-${{ matrix.service }}
-          path: src/${{ matrix.service }}/trivy-reports/trivy-${{ matrix.service }}.txt
+          path: trivy-reports/${{ matrix.service }}.txt
 
       ###############################################
-      # 7. DOCKER CLEANUP (PREVENT DISK FULL)
+      # 8. CLEANUP DOCKER IMAGE
       ###############################################
-      - name: Cleanup Local Image
+      - name: Cleanup Local Docker Image
+        if: steps.pathcheck.outputs.found == 'true'
         run: |
-          IMAGE_NAME="${{ matrix.service }}:latest"
-          echo "🧹 Cleaning local Docker image: $IMAGE_NAME"
-          docker rmi $IMAGE_NAME || true
+          SERVICE="${{ matrix.service }}"
+          docker rmi ${SERVICE}:latest || true
+
