@@ -9,6 +9,7 @@ on:
 jobs:
   sonar-scan:
     runs-on: self-hosted
+
     strategy:
       matrix:
         service:
@@ -49,4 +50,5 @@ jobs:
             -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
             -Dsonar.sources=. \
             -Dsonar.sourceEncoding=UTF-8 \
-            -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/build/**,**/.gradle/**,**/*.md,LICENSE
+            -Dsonar.qualitygate.wait=true \
+            -Dsonar.exclusions="**/node_modules/**,**/dist/**,**/build/**,**/obj/**,**/bin/**,**/.gradle/**,**/*.md,LICENSE"
