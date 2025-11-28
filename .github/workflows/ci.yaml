@@ -28,26 +28,26 @@ jobs:
           - recommendationservice
 
     steps:
-      ###############################################
-      # 1. CHECKOUT REPO
-      ###############################################
+      ############################################################
+      # 1. CHECKOUT
+      ############################################################
       - name: Checkout Repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      ###############################################
-      # 2. SONAR SCANNER SETUP
-      ###############################################
+      ############################################################
+      # 2. SONAR SCANNER
+      ############################################################
       - name: Add Sonar Scanner to PATH
         run: echo "/opt/devsecops-tools/sonar-scanner/bin" >> $GITHUB_PATH
 
       - name: Verify Sonar Scanner
         run: sonar-scanner --version
 
-      ###############################################
+      ############################################################
       # 3. SONAR SCAN
-      ###############################################
+      ############################################################
       - name: SonarQube Scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -63,88 +63,97 @@ jobs:
             -Dsonar.qualitygate.wait=false \
             -Dsonar.exclusions="**/node_modules/**,**/dist/**,**/build/**,**/obj/**,**/bin/**,**/.gradle/**,**/*.md,LICENSE"
 
-      ###############################################
-      # 4. DETERMINE DOCKERFILE PATH + SPECIAL CASES
-      ###############################################
+      ############################################################
+      # 4. DETERMINE DOCKERFILE PATH
+      ############################################################
       - name: Determine Dockerfile Path
         id: pathcheck
         run: |
           SERVICE="${{ matrix.service }}"
 
-          # default path for Dockerfile
-          DOCKERFILE_PATH="src/$SERVICE/Dockerfile"
+          # Default Dockerfile location
+          DOCKERFILE="src/$SERVICE/Dockerfile"
+          CONTEXT="src/$SERVICE"
 
-          # special case for cartservice
+          # Special case for cartservice (.NET)
           if [ "$SERVICE" = "cartservice" ]; then
-            DOCKERFILE_PATH="src/cartservice/src/Dockerfile"
+            DOCKERFILE="src/cartservice/src/Dockerfile"
+            CONTEXT="src/cartservice/src"
           fi
 
-          # frontend-gateway has NO Dockerfile
+          # Skip frontend-gateway (no Dockerfile)
           if [ "$SERVICE" = "frontend-gateway" ]; then
             echo "found=false" >> $GITHUB_OUTPUT
             exit 0
           fi
 
-          # Verify Dockerfile exists
-          if [ -f "$DOCKERFILE_PATH" ]; then
-            echo "dockerfile=$DOCKERFILE_PATH" >> $GITHUB_OUTPUT
+          # Validate Dockerfile exists
+          if [ -f "$DOCKERFILE" ]; then
+            echo "dockerfile=$DOCKERFILE" >> $GITHUB_OUTPUT
+            echo "context=$CONTEXT" >> $GITHUB_OUTPUT
             echo "found=true" >> $GITHUB_OUTPUT
           else
-            echo "❌ Dockerfile not found for $SERVICE"
             echo "found=false" >> $GITHUB_OUTPUT
           fi
 
-      ###############################################
-      # 5. DOCKER BUILD (FULL FIX — CORRECT CONTEXT)
-      ###############################################
+      ############################################################
+      # 5. DOCKER BUILD
+      ############################################################
       - name: Build Docker Image
         if: steps.pathcheck.outputs.found == 'true'
         run: |
           SERVICE="${{ matrix.service }}"
           DOCKERFILE="${{ steps.pathcheck.outputs.dockerfile }}"
+          CONTEXT="${{ steps.pathcheck.outputs.context }}"
           IMAGE_NAME="${SERVICE}:latest"
 
           echo "🔥 Building Docker image for $SERVICE"
-          echo "📁 Using Dockerfile: $DOCKERFILE"
-          echo "📂 Using build context: src/$SERVICE"
+          echo "📁 Dockerfile: $DOCKERFILE"
+          echo "📂 Context: $CONTEXT"
 
           docker build \
             -t $IMAGE_NAME \
             -f $DOCKERFILE \
-            src/$SERVICE
+            $CONTEXT
 
-      ###############################################
-      # 6. TRIVY SCAN
-      ###############################################
+      ############################################################
+      # 6. TRIVY SCAN + SHOW RESULTS IN ACTIONS UI
+      ############################################################
       - name: Run Trivy Image Scan
         if: steps.pathcheck.outputs.found == 'true'
+        id: trivy
         run: |
           SERVICE="${{ matrix.service }}"
           IMAGE_NAME="${SERVICE}:latest"
+          REPORT="trivy-${SERVICE}.txt"
 
           mkdir -p trivy-reports
 
-          echo "🛡 Running Trivy scan on $IMAGE_NAME"
           trivy image \
             --format table \
-            -o trivy-reports/${SERVICE}.txt \
+            -o trivy-reports/$REPORT \
             $IMAGE_NAME || true
 
-      ###############################################
-      # 7. UPLOAD TRIVY REPORT
-      ###############################################
+          echo "### 🛡 Trivy Scan Results for ${SERVICE}" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          cat trivy-reports/$REPORT >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+      ############################################################
+      # 7. UPLOAD TRIVY REPORT ARTIFACT
+      ############################################################
       - name: Upload Trivy Report
         if: steps.pathcheck.outputs.found == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: trivy-${{ matrix.service }}
-          path: trivy-reports/${{ matrix.service }}.txt
+          path: trivy-reports/trivy-${{ matrix.service }}.txt
 
-      ###############################################
+      ############################################################
       # 8. DOCKER CLEANUP
-      ###############################################
+      ############################################################
       - name: Cleanup Docker Image
         if: steps.pathcheck.outputs.found == 'true'
         run: |
           SERVICE="${{ matrix.service }}"
-          docker rmi ${SERVICE}:latest || true
+          docker rmi "${SERVICE}:latest" || true
