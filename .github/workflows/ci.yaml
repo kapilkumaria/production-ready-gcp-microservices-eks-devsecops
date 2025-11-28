@@ -66,10 +66,10 @@ jobs:
         if: matrix.language == 'java'
         run: java -version
 
-      # NODE (only if tests exist)
+      # NODE — only for services WITH tests
       - name: Install Node dependencies
-        if: matrix.language == 'node' && 
-            matrix.service != 'currencyservice' && 
+        if: matrix.language == 'node' &&
+            matrix.service != 'currencyservice' &&
             matrix.service != 'paymentservice' &&
             matrix.service != 'frontend-ui' &&
             matrix.service != 'frontend-gateway'
@@ -78,12 +78,12 @@ jobs:
           npm install
 
       - name: Skip Node dependencies (no tests)
-        if: matrix.language == 'node' && 
-            (matrix.service == 'currencyservice' || 
+        if: matrix.language == 'node' &&
+            (matrix.service == 'currencyservice' ||
              matrix.service == 'paymentservice' ||
              matrix.service == 'frontend-ui' ||
              matrix.service == 'frontend-gateway')
-        run: echo "Skipping npm install — no tests for this Node service"
+        run: echo "Skipping npm install — this service has NO tests"
 
       # PYTHON
       - name: Install Python dependencies
@@ -116,7 +116,7 @@ jobs:
           cd src/${{ matrix.service }}
           ./gradlew clean test jacocoTestReport
 
-      # NODE tests (only where available)
+      # NODE
       - name: Run Node Tests + Coverage
         if: matrix.language == 'node' &&
             matrix.service != 'currencyservice' &&
@@ -127,7 +127,7 @@ jobs:
           cd src/${{ matrix.service }}
           npm test -- --coverage
 
-      - name: Skip Node Tests (no tests)
+      - name: Skip Node Tests
         if: matrix.language == 'node' &&
             (matrix.service == 'currencyservice' ||
              matrix.service == 'paymentservice' ||
@@ -143,7 +143,7 @@ jobs:
           pytest --cov=. --cov-report=xml
 
       # GO
-      - name: Run Go Tests with Coverage
+      - name: Run Go Tests + Coverage
         if: matrix.language == 'go'
         run: |
           cd src/${{ matrix.service }}
@@ -156,15 +156,23 @@ jobs:
         if: matrix.language == 'csharp'
         run: |
           cd src/${{ matrix.service }}
+
+          # No test folder -> create empty coverage file
+          if ! ls -R . | grep -i "Test" >/dev/null 2>&1; then
+            echo "<CoverageSession></CoverageSession>" > coverage.opencover.xml
+            echo "No C# tests detected — generating empty coverage file"
+            exit 0
+          fi
+
           dotnet test \
             /p:CollectCoverage=true \
             /p:CoverletOutput=./coverage.opencover.xml \
-            /p:CoverletOutputFormat=opencover
+            /p:CoverletOutputFormat=opencover \
+            /p:Exclude=[*]Tests.*
 
       ###########################################################
-      # SONARQUBE ANALYSIS + QG
-      ###########################################################     
-
+      # SONARQUBE ANALYSIS
+      ###########################################################
       - name: Run SonarQube Scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -173,23 +181,21 @@ jobs:
 
           EXTRA_ARGS="-Dsonar.qualitygate.wait=true"
 
-          # SAFE global exclusions
-          EXTRA_ARGS="$EXTRA_ARGS -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/build/**,**/genproto/**,**/build/generated/**,**/.gradle/**"
+          # Global exclusions (SAFE)
+          EXTRA_ARGS="$EXTRA_ARGS -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/build/**,**/.gradle/**,**/genproto/**,**/build/generated/**"
 
-          # Java-specific binaries
+          # Java binaries
           if [ "${{ matrix.language }}" = "java" ]; then
             EXTRA_ARGS="$EXTRA_ARGS -Dsonar.java.binaries=build/classes/java/main"
           fi
 
-          # Skip JS test failures in paymentservice
+          # Skip JS tests in paymentservice
           if [ "${{ matrix.service }}" = "paymentservice" ]; then
             EXTRA_ARGS="$EXTRA_ARGS -Dsonar.test.exclusions=**/*.js"
           fi
 
-          # *** DO NOT override sonar.sources ***
           sonar-scanner \
             -Dsonar.projectKey=${{ matrix.service }} \
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
             -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
             $EXTRA_ARGS
-
