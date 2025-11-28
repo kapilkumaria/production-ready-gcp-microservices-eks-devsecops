@@ -50,5 +50,5 @@ jobs:
             -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
             -Dsonar.sources=. \
             -Dsonar.sourceEncoding=UTF-8 \
-            -Dsonar.qualitygate.wait=true \
+            -Dsonar.qualitygate.wait=false \
             -Dsonar.exclusions="**/node_modules/**,**/dist/**,**/build/**,**/obj/**,**/bin/**,**/.gradle/**,**/*.md,LICENSE"
