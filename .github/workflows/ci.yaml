@@ -1,4 +1,4 @@
-name: Simple-Sonar-CI
+name: Build-Scan-CI
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  sonar-scan:
+  build-scan:
     runs-on: self-hosted
 
     strategy:
@@ -28,18 +28,27 @@ jobs:
           - recommendationservice
 
     steps:
-      - name: Checkout
+      ###############################################
+      # 1. CHECKOUT CODE
+      ###############################################
+      - name: Checkout Repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      ###############################################
+      # 2. SETUP SONAR SCANNER PATH
+      ###############################################
       - name: Add Sonar Scanner to PATH
-        run: echo "/opt/sonar-scanner/sonar-scanner/bin" >> $GITHUB_PATH
+        run: echo "/opt/devsecops-tools/sonar-scanner/bin" >> $GITHUB_PATH
 
-      - name: Verify Scanner
+      - name: Verify Sonar Scanner
         run: sonar-scanner --version
 
-      - name: Run Sonar Scan
+      ###############################################
+      # 3. RUN SONAR SCAN
+      ###############################################
+      - name: SonarQube Scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
@@ -53,3 +62,48 @@ jobs:
             -Dsonar.sourceEncoding=UTF-8 \
             -Dsonar.qualitygate.wait=false \
             -Dsonar.exclusions="**/node_modules/**,**/dist/**,**/build/**,**/obj/**,**/bin/**,**/.gradle/**,**/*.md,LICENSE"
+
+      ###############################################
+      # 4. DOCKER BUILD
+      ###############################################
+      - name: Build Docker Image
+        run: |
+          cd src/${{ matrix.service }}
+
+          IMAGE_NAME="${{ matrix.service }}:latest"
+          echo "🔥 Building Docker image: $IMAGE_NAME"
+
+          docker build -t $IMAGE_NAME .
+
+      ###############################################
+      # 5. TRIVY SCAN (Image)
+      ###############################################
+      - name: Run Trivy Image Scan
+        run: |
+          cd src/${{ matrix.service }}
+
+          IMAGE_NAME="${{ matrix.service }}:latest"
+          REPORT_FILE="trivy-${{ matrix.service }}.txt"
+
+          mkdir -p trivy-reports
+
+          echo "🛡 Running Trivy scan on $IMAGE_NAME"
+          trivy image --format table -o trivy-reports/$REPORT_FILE $IMAGE_NAME || true
+
+      ###############################################
+      # 6. UPLOAD TRIVY SCAN REPORT (Artifact)
+      ###############################################
+      - name: Upload Trivy Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-${{ matrix.service }}
+          path: src/${{ matrix.service }}/trivy-reports/trivy-${{ matrix.service }}.txt
+
+      ###############################################
+      # 7. DOCKER CLEANUP (PREVENT DISK FULL)
+      ###############################################
+      - name: Cleanup Local Image
+        run: |
+          IMAGE_NAME="${{ matrix.service }}:latest"
+          echo "🧹 Cleaning local Docker image: $IMAGE_NAME"
+          docker rmi $IMAGE_NAME || true
