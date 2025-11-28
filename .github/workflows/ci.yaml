@@ -28,6 +28,7 @@ jobs:
           - recommendationservice
 
     steps:
+
       ############################################################
       # 1. CHECKOUT
       ############################################################
@@ -37,7 +38,7 @@ jobs:
           fetch-depth: 0
 
       ############################################################
-      # 2. SONAR SCANNER
+      # 2. ADD SONAR SCANNER
       ############################################################
       - name: Add Sonar Scanner to PATH
         run: echo "/opt/devsecops-tools/sonar-scanner/bin" >> $GITHUB_PATH
@@ -71,17 +72,14 @@ jobs:
         run: |
           SERVICE="${{ matrix.service }}"
 
-          # Default paths
           DOCKERFILE="src/$SERVICE/Dockerfile"
           CONTEXT="src/$SERVICE"
 
-          # Special case: cartservice (.NET)
           if [ "$SERVICE" = "cartservice" ]; then
             DOCKERFILE="src/cartservice/src/Dockerfile"
             CONTEXT="src/cartservice/src"
           fi
 
-          # Skip frontend-gateway (no Dockerfile)
           if [ "$SERVICE" = "frontend-gateway" ]; then
             echo "found=false" >> $GITHUB_OUTPUT
             exit 0
@@ -104,16 +102,13 @@ jobs:
           SERVICE="${{ matrix.service }}"
           DOCKERFILE="${{ steps.pathcheck.outputs.dockerfile }}"
           CONTEXT="${{ steps.pathcheck.outputs.context }}"
-          IMAGE="${SERVICE}:latest"
+          IMAGE_NAME="${SERVICE}:latest"
 
-          echo "🔥 Building image: $IMAGE"
-          echo "📄 Dockerfile: $DOCKERFILE"
-          echo "📂 Context: $CONTEXT"
-
-          docker build -t $IMAGE -f $DOCKERFILE $CONTEXT
+          echo "🔥 Building Docker image for $SERVICE"
+          docker build -t $IMAGE_NAME -f $DOCKERFILE $CONTEXT
 
       ############################################################
-      # 6. TRIVY SCAN + PROFESSIONAL SUMMARY
+      # 6. TRIVY SECURITY SCAN (PROFESSIONAL SUMMARY)
       ############################################################
       - name: Trivy Scan (Professional Output)
         if: steps.pathcheck.outputs.found == 'true'
@@ -121,47 +116,40 @@ jobs:
         run: |
           SERVICE="${{ matrix.service }}"
           IMAGE="${SERVICE}:latest"
+          REPORT="trivy-${SERVICE}.txt"
 
           mkdir -p trivy-reports
 
-          # Full table report
           trivy image \
             --format table \
-            -o trivy-reports/${SERVICE}.txt \
+            -o trivy-reports/$REPORT \
             $IMAGE || true
 
-          # JSON report for severity parsing
-          trivy image \
-            --format json \
-            -o trivy-reports/${SERVICE}.json \
-            $IMAGE || true
+          CRIT=$(grep -c "CRITICAL" trivy-reports/$REPORT || true)
+          HIGH=$(grep -c "HIGH" trivy-reports/$REPORT || true)
+          MED=$(grep -c "MEDIUM" trivy-reports/$REPORT || true)
+          LOW=$(grep -c "LOW" trivy-reports/$REPORT || true)
 
-          # Extract severity counts
-          CRIT=$(jq '.Results[].Vulnerabilities[]? | select(.Severity=="CRITICAL") | .Severity' trivy-reports/${SERVICE}.json | wc -l)
-          HIGH=$(jq '.Results[].Vulnerabilities[]? | select(.Severity=="HIGH") | .Severity' trivy-reports/${SERVICE}.json | wc -l)
-          MED=$(jq '.Results[].Vulnerabilities[]? | select(.Severity=="MEDIUM") | .Severity' trivy-reports/${SERVICE}.json | wc -l)
-          LOW=$(jq '.Results[].Vulnerabilities[]? | select(.Severity=="LOW") | .Severity' trivy-reports/${SERVICE}.json | wc -l)
+          echo "## 🛡 Trivy Security Scan — ${SERVICE}" >> $GITHUB_STEP_SUMMARY
+          echo "**Image:** \`${IMAGE}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
 
-          # Write professional summary
-          {
-            echo "## 🛡 Trivy Security Scan — $SERVICE"
-            echo "**Image:** \`$IMAGE\`"
-            echo ""
-            echo "### 🔢 Vulnerability Summary"
-            echo "| Severity | Count |"
-            echo "|----------|-------|"
-            echo "| 🔥 CRITICAL | $CRIT |"
-            echo "| ❤️ HIGH | $HIGH |"
-            echo "| 💛 MEDIUM | $MED |"
-            echo "| 💙 LOW | $LOW |"
-            echo ""
-            echo "<details><summary><strong>🔍 Full Report (Click to Expand)</strong></summary>"
-            echo ""
-            echo "\`\`\`"
-            cat trivy-reports/${SERVICE}.txt
-            echo "\`\`\`"
-            echo "</details>"
-          } >> $GITHUB_STEP_SUMMARY
+          echo "### **Vulnerability Summary**" >> $GITHUB_STEP_SUMMARY
+          echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔥 CRITICAL | $CRIT |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🚨 HIGH | $HIGH |" >> $GITHUB_STEP_SUMMARY
+          echo "| ⚠️ MEDIUM | $MED |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔵 LOW | $LOW |" >> $GITHUB_STEP_SUMMARY
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🔍 **Full Report (Click to Expand)**" >> $GITHUB_STEP_SUMMARY
+          echo "<details><summary>View Report</summary>" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          cat trivy-reports/$REPORT >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "</details>" >> $GITHUB_STEP_SUMMARY
 
       ############################################################
       # 7. UPLOAD TRIVY REPORT ARTIFACT
@@ -171,12 +159,46 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: trivy-${{ matrix.service }}
-          path: trivy-reports/
+          path: trivy-reports/trivy-${{ matrix.service }}.txt
 
       ############################################################
-      # 8. DOCKER CLEANUP
+      # 8. AWS ECR LOGIN
       ############################################################
-      - name: Cleanup Docker Image
+      - name: AWS ECR Login
+        if: steps.pathcheck.outputs.found == 'true'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          aws ecr get-login-password --region us-east-1 \
+            | docker login \
+                --username AWS \
+                --password-stdin 931058976119.dkr.ecr.us-east-1.amazonaws.com
+
+      ############################################################
+      # 9. TAG & PUSH IMAGE TO AWS ECR
+      ############################################################
+      - name: Tag & Push Image to ECR
         if: steps.pathcheck.outputs.found == 'true'
         run: |
-          docker rmi "${{ matrix.service }}:latest" || true
+          SERVICE="${{ matrix.service }}"
+          SHA_SHORT=$(echo "${GITHUB_SHA}" | cut -c1-7)
+          ECR_REPO="931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices"
+
+          docker tag "${SERVICE}:latest" "$ECR_REPO/${SERVICE}:${SHA_SHORT}"
+
+          echo "🚀 Pushing image: $ECR_REPO/${SERVICE}:${SHA_SHORT}"
+          docker push "$ECR_REPO/${SERVICE}:${SHA_SHORT}"
+
+      ############################################################
+      # 10. CLEANUP DOCKER IMAGES
+      ############################################################
+      - name: Cleanup Docker Images
+        if: steps.pathcheck.outputs.found == 'true'
+        run: |
+          SERVICE="${{ matrix.service }}"
+          SHA_SHORT=$(echo "${GITHUB_SHA}" | cut -c1-7)
+          ECR_REPO="931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices"
+
+          docker rmi "${SERVICE}:latest" || true
+          docker rmi "$ECR_REPO/${SERVICE}:${SHA_SHORT}" || true
