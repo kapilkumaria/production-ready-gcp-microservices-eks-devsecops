@@ -1,5 +1,8 @@
 name: Build-Scan-CI
 
+permissions:
+  contents: write
+
 on:
   push:
     branches: ["main"]
@@ -220,14 +223,16 @@ jobs:
       ############################################################
       # 12. COMMIT UPDATED MANIFESTS (GitOps)
       ############################################################
-      - name: Commit Updated Manifests
+      - name: Commit updated manifests
         if: steps.pathcheck.outputs.found == 'true'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
 
           git add k8s-manifests/overlays/dev/kustomization.yaml
-          git commit -m "Update dev image tag for ${{ matrix.service }}"
-          git push
+          git commit -m "Update dev image tag for ${{ matrix.service }}" || echo "No changes to commit"
+
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/kapilkumaria/production-ready-gcp-microservices-eks-devsecops.git
+
