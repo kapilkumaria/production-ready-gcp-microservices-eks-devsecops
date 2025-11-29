@@ -37,6 +37,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      ############################################################
+      # DETERMINE DOCKERFILE PATH
+      ############################################################
       - name: Determine Dockerfile Path
         id: pathcheck
         run: |
@@ -62,6 +65,9 @@ jobs:
             echo "found=false" >> $GITHUB_OUTPUT
           fi
 
+      ############################################################
+      # DOCKER BUILD
+      ############################################################
       - name: Build Docker Image
         if: steps.pathcheck.outputs.found == 'true'
         run: |
@@ -69,6 +75,9 @@ jobs:
             -f ${{ steps.pathcheck.outputs.dockerfile }} \
             ${{ steps.pathcheck.outputs.context }}
 
+      ############################################################
+      # LOGIN TO ECR
+      ############################################################
       - name: AWS ECR Login
         if: steps.pathcheck.outputs.found == 'true'
         env:
@@ -79,6 +88,9 @@ jobs:
           docker login --username AWS \
             --password-stdin 931058976119.dkr.ecr.us-east-1.amazonaws.com
 
+      ############################################################
+      # TAG & PUSH TO ECR
+      ############################################################
       - name: Push Image to ECR
         id: ecrpush
         if: steps.pathcheck.outputs.found == 'true'
@@ -90,9 +102,10 @@ jobs:
           docker push $ECR/${{ matrix.service }}:$TAG
 
           echo "image=$ECR/${{ matrix.service }}:$TAG" >> $GITHUB_OUTPUT
-          echo "service=${{ matrix.service }}" >> $GITHUB_OUTPUT
 
-      # Collect all image outputs  
+      ############################################################
+      # COLLECT ALL IMAGE TAGS (AGGREGATE LIST)
+      ############################################################
       - name: Collect image outputs
         id: collect
         run: |
@@ -101,8 +114,9 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
 
+
   ############################################################
-  # 2. UPDATE KUSTOMIZATION.YAML (RUNS ONLY ONCE)
+  # 2. UPDATE KUSTOMIZATION.YAML (ONE JOB ONLY)
   ############################################################
   update-manifests:
     runs-on: ubuntu-latest
@@ -111,25 +125,34 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
+      ############################################################
+      # UPDATE DEV KUSTOMIZATION.YAML WITH ALL IMAGES
+      ############################################################
       - name: Update kustomization.yaml with all images
         run: |
           FILE="k8s-manifests/overlays/dev/kustomization.yaml"
-
+          
           echo "images:" > $FILE
 
-          # Loop through all images produced by matrix
           while read IMG; do
             NAME=$(echo $IMG | awk -F'[:/]' '{print $(NF-1)}')
             TAG=$(echo $IMG | awk -F: '{print $2}')
+            REPO=$(echo $IMG | awk -F: '{print $1}')
 
             cat <<EOF >> $FILE
-            - name: $NAME
-              newName: $IMG
-              newTag: $TAG
-          EOF
-                done <<< "${{ needs.build-scan.outputs.images }}"
+      - name: $NAME
+        newName: $REPO
+        newTag: $TAG
 
+          EOF
+                    done <<< "${{ needs.build-scan.outputs.images }}"
+
+      ############################################################
+      # COMMIT CHANGES
+      ############################################################
       - name: Commit manifest update
         env:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -143,7 +166,7 @@ jobs:
 
 
   ############################################################
-  # 3. DONE (ArgoCD auto-sync will deploy)
+  # 3. DONE (ARGOCD WILL AUTO-DEPLOY)
   ############################################################
   done:
     needs: update-manifests
