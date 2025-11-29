@@ -9,3 +9,6 @@ images:
   # - name: adservice
   #   newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/adservice
   #   newTag: 9fa8b12
+- name: checkoutservice
+  newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/checkoutservice
+  newTag: 60eebee
