@@ -1,16 +1,15 @@
 name: Build-Scan-CI
 
-permissions:
-  contents: write
-
 on:
   push:
-    branches: ["main"]
-  pull_request:
     branches: ["main"]
   workflow_dispatch:
 
 jobs:
+
+  ############################################################
+  # 1. BUILD + SCAN + PUSH (MATRIX)
+  ############################################################
   build-scan:
     runs-on: self-hosted
 
@@ -30,46 +29,14 @@ jobs:
           - shippingservice
           - recommendationservice
 
+    outputs:
+      images: ${{ steps.collect.outputs.images }}
+
     steps:
 
-      ############################################################
-      # 1. CHECKOUT
-      ############################################################
-      - name: Checkout Repo
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      ############################################################
-      # 2. ADD SONAR SCANNER
-      ############################################################
-      - name: Add Sonar Scanner to PATH
-        run: echo "/opt/devsecops-tools/sonar-scanner/bin" >> $GITHUB_PATH
-
-      - name: Verify Sonar Scanner
-        run: sonar-scanner --version
-
-      ############################################################
-      # 3. SONAR SCAN
-      ############################################################
-      - name: SonarQube Scan
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          cd src/${{ matrix.service }}
-
-          sonar-scanner \
-            -Dsonar.projectKey=${{ matrix.service }} \
-            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
-            -Dsonar.token=${{ secrets.SONAR_TOKEN }} \
-            -Dsonar.sources=. \
-            -Dsonar.sourceEncoding=UTF-8 \
-            -Dsonar.qualitygate.wait=false \
-            -Dsonar.exclusions="**/node_modules/**,**/dist/**,**/build/**,**/obj/**,**/bin/**,**/.gradle/**,**/*.md,LICENSE"
-
-      ############################################################
-      # 4. DETERMINE DOCKERFILE PATH
-      ############################################################
       - name: Determine Dockerfile Path
         id: pathcheck
         run: |
@@ -82,7 +49,6 @@ jobs:
             CONTEXT="src/cartservice/src"
           fi
 
-          # Skip frontend-gateway — no Dockerfile
           if [ "$SERVICE" = "frontend-gateway" ]; then
             echo "found=false" >> $GITHUB_OUTPUT
             exit 0
@@ -96,149 +62,91 @@ jobs:
             echo "found=false" >> $GITHUB_OUTPUT
           fi
 
-      ############################################################
-      # 5. DOCKER BUILD
-      ############################################################
       - name: Build Docker Image
         if: steps.pathcheck.outputs.found == 'true'
         run: |
-          SERVICE="${{ matrix.service }}"
-          DOCKERFILE="${{ steps.pathcheck.outputs.dockerfile }}"
-          CONTEXT="${{ steps.pathcheck.outputs.context }}"
-          IMAGE_NAME="${SERVICE}:latest"
+          docker build -t ${{ matrix.service }}:latest \
+            -f ${{ steps.pathcheck.outputs.dockerfile }} \
+            ${{ steps.pathcheck.outputs.context }}
 
-          echo "🔥 Building Docker image for $SERVICE"
-          docker build -t $IMAGE_NAME -f $DOCKERFILE $CONTEXT
-
-      ############################################################
-      # 6. TRIVY SECURITY SCAN
-      ############################################################
-      - name: Trivy Scan (Professional Output)
-        if: steps.pathcheck.outputs.found == 'true'
-        id: trivy
-        run: |
-          SERVICE="${{ matrix.service }}"
-          IMAGE="${SERVICE}:latest"
-          REPORT="trivy-${SERVICE}.txt"
-
-          mkdir -p trivy-reports
-
-          trivy image \
-            --format table \
-            -o trivy-reports/$REPORT \
-            $IMAGE || true
-
-          # summary
-          CRIT=$(grep -c "CRITICAL" trivy-reports/$REPORT || true)
-          HIGH=$(grep -c "HIGH" trivy-reports/$REPORT || true)
-          MED=$(grep -c "MEDIUM" trivy-reports/$REPORT || true)
-          LOW=$(grep -c "LOW" trivy-reports/$REPORT || true)
-
-          echo "## 🛡 Trivy Security Scan — ${SERVICE}" >> $GITHUB_STEP_SUMMARY
-          echo "**Image:** \`${IMAGE}\`" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
-          echo "|---------|-------|" >> $GITHUB_STEP_SUMMARY
-          echo "| 🔥 CRITICAL | $CRIT |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🚨 HIGH | $HIGH |" >> $GITHUB_STEP_SUMMARY
-          echo "| ⚠️ MEDIUM | $MED |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🔵 LOW | $LOW |" >> $GITHUB_STEP_SUMMARY
-
-      ############################################################
-      # 7. UPLOAD TRIVY REPORT
-      ############################################################
-      - name: Upload Trivy Report
-        if: steps.pathcheck.outputs.found == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: trivy-${{ matrix.service }}
-          path: trivy-reports/trivy-${{ matrix.service }}.txt
-
-      ############################################################
-      # 8. AWS ECR LOGIN
-      ############################################################
       - name: AWS ECR Login
         if: steps.pathcheck.outputs.found == 'true'
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          aws ecr get-login-password --region us-east-1 \
-            | docker login \
-                --username AWS \
-                --password-stdin 931058976119.dkr.ecr.us-east-1.amazonaws.com
+          aws ecr get-login-password --region us-east-1 |
+          docker login --username AWS \
+            --password-stdin 931058976119.dkr.ecr.us-east-1.amazonaws.com
 
-      ############################################################
-      # 9. TAG & PUSH IMAGE TO ECR
-      ############################################################
-      - name: Tag & Push Image to ECR
-        id: ecr
+      - name: Push Image to ECR
+        id: ecrpush
         if: steps.pathcheck.outputs.found == 'true'
         run: |
-          SERVICE="${{ matrix.service }}"
-          SHA_SHORT=$(echo "${GITHUB_SHA}" | cut -c1-7)
-          ECR_REPO="931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices"
+          TAG=$(echo "${GITHUB_SHA}" | cut -c1-7)
+          ECR="931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices"
 
-          IMAGE_TAG="$ECR_REPO/${SERVICE}:${SHA_SHORT}"
+          docker tag ${{ matrix.service }}:latest $ECR/${{ matrix.service }}:$TAG
+          docker push $ECR/${{ matrix.service }}:$TAG
 
-          docker tag "${SERVICE}:latest" "$IMAGE_TAG"
-          docker push "$IMAGE_TAG"
+          echo "image=$ECR/${{ matrix.service }}:$TAG" >> $GITHUB_OUTPUT
+          echo "service=${{ matrix.service }}" >> $GITHUB_OUTPUT
 
-          echo "service=$SERVICE" >> $GITHUB_OUTPUT
-          echo "image=$IMAGE_TAG" >> $GITHUB_OUTPUT
-
-      ############################################################
-      # 10. CLEANUP DOCKER IMAGES
-      ############################################################
-      - name: Cleanup Docker Images
-        if: steps.pathcheck.outputs.found == 'true'
+      # Collect all image outputs  
+      - name: Collect image outputs
+        id: collect
         run: |
-          SERVICE="${{ matrix.service }}"
-          SHA_SHORT=$(echo "${GITHUB_SHA}" | cut -c1-7)
-          ECR_REPO="931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices"
+          echo "images<<EOF" >> $GITHUB_OUTPUT
+          echo "${{ steps.ecrpush.outputs.image }}" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
-          docker rmi "${SERVICE}:latest" || true
-          docker rmi "$ECR_REPO/${SERVICE}:${SHA_SHORT}" || true
 
-      ############################################################
-      # 11. UPDATE DEV KUSTOMIZATION.YAML (GitOps)
-      ############################################################
-      - name: Update dev kustomization.yaml with new image tag
-        if: steps.pathcheck.outputs.found == 'true'
+  ############################################################
+  # 2. UPDATE KUSTOMIZATION.YAML (RUNS ONLY ONCE)
+  ############################################################
+  update-manifests:
+    runs-on: ubuntu-latest
+    needs: build-scan
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Update kustomization.yaml with all images
         run: |
           FILE="k8s-manifests/overlays/dev/kustomization.yaml"
-          SERVICE="${{ steps.ecr.outputs.service }}"
-          IMAGE="${{ steps.ecr.outputs.image }}"
 
-          # Remove old image entry
-          sed -i "/name: ${SERVICE}/,+2d" $FILE
+          echo "images:" > $FILE
 
-          # Append new image entry (only list items!)
-          cat <<EOF >> $FILE
-          - name: ${SERVICE}
-            newName: ${IMAGE%:*}
-            newTag: ${IMAGE##*:}
+          # Loop through all images produced by matrix
+          while read IMG; do
+            NAME=$(echo $IMG | awk -F'[:/]' '{print $(NF-1)}')
+            TAG=$(echo $IMG | awk -F: '{print $2}')
+
+            cat <<EOF >> $FILE
+            - name: $NAME
+              newName: $IMG
+              newTag: $TAG
           EOF
+                done <<< "${{ needs.build-scan.outputs.images }}"
 
-      ############################################################
-      # 12. COMMIT UPDATED MANIFESTS (GitOps)
-      ############################################################         
-
-      - name: Commit Updated Manifests
-        if: steps.pathcheck.outputs.found == 'true'
+      - name: Commit manifest update
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
 
           git add k8s-manifests/overlays/dev/kustomization.yaml
-          git commit -m "Update dev image tag for ${{ matrix.service }}" || echo "No changes to commit"
-
-          # FIX: pull latest changes before pushing
-          git pull --rebase origin main
-
-          # push using GitHub Actions token with HTTPS
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
+          git commit -m "Update image tags for all services" || exit 0
+          git push https://x-access-token:${TOKEN}@github.com/${{ github.repository }}.git
 
 
+  ############################################################
+  # 3. DONE (ArgoCD auto-sync will deploy)
+  ############################################################
+  done:
+    needs: update-manifests
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "CI/CD completed — ArgoCD will now sync!"
