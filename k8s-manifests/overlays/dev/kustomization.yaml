@@ -1,4 +1,4 @@
 images:
   - name: cartservice
-    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/cartservice:216347b
-    newTag: 216347b
+    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/cartservice
+    newTag: 436063a
