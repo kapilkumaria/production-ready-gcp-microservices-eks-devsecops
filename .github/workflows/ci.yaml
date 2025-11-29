@@ -8,7 +8,7 @@ on:
 jobs:
 
   ############################################################
-  # 1. BUILD + PUSH TO ECR (MATRIX)
+  # 1. BUILD + SCAN + PUSH (MATRIX)
   ############################################################
   build-scan:
     runs-on: self-hosted
@@ -49,6 +49,7 @@ jobs:
             CONTEXT="src/cartservice/src"
           fi
 
+          # frontend-gateway has no Dockerfile
           if [ "$SERVICE" = "frontend-gateway" ]; then
             echo "found=false" >> $GITHUB_OUTPUT
             exit 0
@@ -89,22 +90,21 @@ jobs:
       # TAG & PUSH TO ECR
       ############################################################
       - name: Push Image to ECR
-        id: ecrpush
         if: steps.pathcheck.outputs.found == 'true'
         run: |
           TAG=$(echo "${GITHUB_SHA}" | cut -c1-7)
           ECR="931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices"
+          IMAGE="$ECR/${{ matrix.service }}:$TAG"
 
-          docker tag ${{ matrix.service }}:latest $ECR/${{ matrix.service }}:$TAG
-          docker push $ECR/${{ matrix.service }}:$TAG
+          docker tag ${{ matrix.service }}:latest $IMAGE
+          docker push $IMAGE
 
-          # Save image reference to a unique file
-          echo "$ECR/${{ matrix.service }}:$TAG" > image.txt
+          echo "$IMAGE" > image.txt
 
       ############################################################
-      # UPLOAD IMAGE ARTIFACT (UNIQUE PER SERVICE)
+      # UPLOAD IMAGE TAG AS ARTIFACT
       ############################################################
-      - name: Upload image artifact
+      - name: Upload Image Artifact
         if: steps.pathcheck.outputs.found == 'true'
         uses: actions/upload-artifact@v4
         with:
@@ -112,50 +112,49 @@ jobs:
           path: image.txt
 
 
-
   ############################################################
-  # 2. UPDATE KUSTOMIZATION.YAML (RUNS ONCE)
+  # 2. UPDATE KUSTOMIZATION.YAML (ONE JOB ONLY)
   ############################################################
   update-manifests:
     runs-on: self-hosted
     needs: build-scan
 
     steps:
-
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      ############################################################
-      # DOWNLOAD ALL IMAGE ARTIFACTS
-      ############################################################
-      - name: Download all image files
+      - name: Download all image artifacts
         uses: actions/download-artifact@v4
         with:
           pattern: image-*
           path: /tmp/images
+          merge-multiple: false
 
       ############################################################
-      # UPDATE DEV KUSTOMIZATION.YAML
+      # UPDATE DEV KUSTOMIZATION.YAML WITH ALL IMAGES
       ############################################################
-      - name: Update dev kustomization.yaml
+      - name: Update kustomization.yaml with all images
         run: |
           FILE="k8s-manifests/overlays/dev/kustomization.yaml"
           echo "images:" > $FILE
 
-          for f in /tmp/images/*; do
-            IMG=$(cat "$f")
-            NAME=$(echo "$IMG" | awk -F'[:/]' '{print $(NF-1)}')
-            TAG=$(echo "$IMG" | awk -F: '{print $2}')
-            REPO=$(echo "$IMG" | awk -F: '{print $1}')
+          # Loop through artifact directories
+          for d in /tmp/images/*; do
+            if [ -f "$d/image.txt" ]; then
+              IMG=$(cat "$d/image.txt")
+              NAME=$(echo "$IMG" | awk -F'[:/]' '{print $(NF-1)}')
+              TAG=$(echo "$IMG" | awk -F: '{print $2}')
+              REPO=$(echo "$IMG" | awk -F: '{print $1}')
 
-            cat <<EOF >> $FILE
+              cat <<EOF >> $FILE
             - name: $NAME
               newName: $REPO
               newTag: $TAG
 
           EOF
+                      fi
                     done
 
       ############################################################
@@ -173,9 +172,8 @@ jobs:
           git push https://x-access-token:${TOKEN}@github.com/${{ github.repository }}.git
 
 
-
   ############################################################
-  # 3. DONE — ARGOCD WILL AUTO-DEPLOY
+  # 3. DONE (ARGOCD WILL AUTO-DEPLOY)
   ############################################################
   done:
     needs: update-manifests
