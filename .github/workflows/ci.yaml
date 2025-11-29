@@ -212,10 +212,10 @@ jobs:
 
           # Append new image entry (only list items!)
           cat <<EOF >> $FILE
-- name: ${SERVICE}
-  newName: ${IMAGE%:*}
-  newTag: ${IMAGE##*:}
-EOF
+          - name: ${SERVICE}
+            newName: ${IMAGE%:*}
+            newTag: ${IMAGE##*:}
+          EOF
 
       ############################################################
       # 12. COMMIT UPDATED MANIFESTS (GitOps)
