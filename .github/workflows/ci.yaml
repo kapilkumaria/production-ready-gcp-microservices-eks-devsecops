@@ -222,8 +222,9 @@ jobs:
 
       ############################################################
       # 12. COMMIT UPDATED MANIFESTS (GitOps)
-      ############################################################
-      - name: Commit updated manifests
+      ############################################################         
+
+      - name: Commit Updated Manifests
         if: steps.pathcheck.outputs.found == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -234,5 +235,10 @@ jobs:
           git add k8s-manifests/overlays/dev/kustomization.yaml
           git commit -m "Update dev image tag for ${{ matrix.service }}" || echo "No changes to commit"
 
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/kapilkumaria/production-ready-gcp-microservices-eks-devsecops.git
+          # FIX: pull latest changes before pushing
+          git pull --rebase origin main
+
+          # push using GitHub Actions token with HTTPS
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
+
 
