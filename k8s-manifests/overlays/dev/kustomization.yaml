@@ -12,3 +12,6 @@ images:
 - name: checkoutservice
   newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/checkoutservice
   newTag: 60eebee
+- name: paymentservice
+  newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/paymentservice
+  newTag: 35abf34
