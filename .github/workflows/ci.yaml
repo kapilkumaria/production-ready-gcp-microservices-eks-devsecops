@@ -8,7 +8,7 @@ on:
 jobs:
 
   ############################################################
-  # 1. BUILD + SCAN + PUSH (MATRIX)
+  # 1. BUILD + PUSH (MATRIX)
   ############################################################
   build-scan:
     runs-on: self-hosted
@@ -22,23 +22,23 @@ jobs:
           - paymentservice
           - productcatalogservice
           - frontend-ui
-          - frontend-gateway
+          - frontend-gateway   # skipped intentionally
           - cartservice
           - emailservice
           - shoppingassistantservice
           - shippingservice
           - recommendationservice
 
-    outputs:
-      images: ${{ steps.collect.outputs.images }}
-
     steps:
 
+      ############################################################
+      # Checkout Repo
+      ############################################################
       - name: Checkout
         uses: actions/checkout@v4
 
       ############################################################
-      # DETERMINE DOCKERFILE PATH
+      # Determine Dockerfile Path
       ############################################################
       - name: Determine Dockerfile Path
         id: pathcheck
@@ -66,7 +66,7 @@ jobs:
           fi
 
       ############################################################
-      # DOCKER BUILD
+      # Build Image
       ############################################################
       - name: Build Docker Image
         if: steps.pathcheck.outputs.found == 'true'
@@ -76,7 +76,7 @@ jobs:
             ${{ steps.pathcheck.outputs.context }}
 
       ############################################################
-      # LOGIN TO ECR
+      # Login to AWS ECR
       ############################################################
       - name: AWS ECR Login
         if: steps.pathcheck.outputs.found == 'true'
@@ -89,10 +89,9 @@ jobs:
             --password-stdin 931058976119.dkr.ecr.us-east-1.amazonaws.com
 
       ############################################################
-      # TAG & PUSH TO ECR
+      # Tag & Push to ECR
       ############################################################
       - name: Push Image to ECR
-        id: ecrpush
         if: steps.pathcheck.outputs.found == 'true'
         run: |
           TAG=$(echo "${GITHUB_SHA}" | cut -c1-7)
@@ -101,58 +100,65 @@ jobs:
           docker tag ${{ matrix.service }}:latest $ECR/${{ matrix.service }}:$TAG
           docker push $ECR/${{ matrix.service }}:$TAG
 
-          echo "image=$ECR/${{ matrix.service }}:$TAG" >> $GITHUB_OUTPUT
+          echo "$ECR/${{ matrix.service }}:$TAG" >> images.txt
 
       ############################################################
-      # COLLECT ALL IMAGE TAGS (AGGREGATE LIST)
+      # Upload image list artifact (one per service)
       ############################################################
-      - name: Collect image outputs
-        id: collect
-        run: |
-          echo "images<<EOF" >> $GITHUB_OUTPUT
-          echo "${{ steps.ecrpush.outputs.image }}" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Upload image list
+        uses: actions/upload-artifact@v4
+        with:
+          name: images
+          path: images.txt
 
 
 
   ############################################################
-  # 2. UPDATE KUSTOMIZATION.YAML (ONE JOB ONLY)
+  # 2. UPDATE KUSTOMIZATION.YAML (MERGES ALL IMAGES)
   ############################################################
   update-manifests:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: build-scan
 
     steps:
+
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       ############################################################
-      # UPDATE DEV KUSTOMIZATION.YAML WITH ALL IMAGES
+      # Download all image artifacts
       ############################################################
-      
+      - name: Download all image files
+        uses: actions/download-artifact@v4
+        with:
+          name: images
+          path: /tmp/images
+
+      ############################################################
+      # Build final kustomization.yaml (all services)
+      ############################################################
       - name: Update kustomization.yaml with all images
         run: |
           FILE="k8s-manifests/overlays/dev/kustomization.yaml"
-          
           echo "images:" > $FILE
 
-          while read IMG; do
+          for f in /tmp/images/*; do
+            IMG=$(cat "$f")
             NAME=$(echo $IMG | awk -F'[:/]' '{print $(NF-1)}')
             TAG=$(echo $IMG | awk -F: '{print $2}')
             REPO=$(echo $IMG | awk -F: '{print $1}')
 
-            cat <<EOF >> $FILE
+          cat <<EOF >> $FILE
             - name: $NAME
               newName: $REPO
               newTag: $TAG
           EOF
-                    done <<< "${{ needs.build-scan.outputs.images }}"
-
+                    done
 
       ############################################################
-      # COMMIT CHANGES
+      # Commit the manifest update
       ############################################################
       - name: Commit manifest update
         env:
@@ -166,11 +172,12 @@ jobs:
           git push https://x-access-token:${TOKEN}@github.com/${{ github.repository }}.git
 
 
+
   ############################################################
-  # 3. DONE (ARGOCD WILL AUTO-DEPLOY)
+  # 3. DONE (ARGOCD AUTO-SYNC)
   ############################################################
   done:
     needs: update-manifests
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - run: echo "CI/CD completed — ArgoCD will now sync!"
