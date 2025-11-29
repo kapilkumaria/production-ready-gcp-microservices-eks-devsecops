@@ -131,6 +131,7 @@ jobs:
       ############################################################
       # UPDATE DEV KUSTOMIZATION.YAML WITH ALL IMAGES
       ############################################################
+      
       - name: Update kustomization.yaml with all images
         run: |
           FILE="k8s-manifests/overlays/dev/kustomization.yaml"
@@ -143,12 +144,12 @@ jobs:
             REPO=$(echo $IMG | awk -F: '{print $1}')
 
             cat <<EOF >> $FILE
-      - name: $NAME
-        newName: $REPO
-        newTag: $TAG
-
+            - name: $NAME
+              newName: $REPO
+              newTag: $TAG
           EOF
                     done <<< "${{ needs.build-scan.outputs.images }}"
+
 
       ############################################################
       # COMMIT CHANGES
