@@ -29,7 +29,7 @@ jobs:
 
     steps:
 
-      ############################################################
+      ###########################################################
       # 1. CHECKOUT
       ############################################################
       - name: Checkout Repo
@@ -71,7 +71,6 @@ jobs:
         id: pathcheck
         run: |
           SERVICE="${{ matrix.service }}"
-
           DOCKERFILE="src/$SERVICE/Dockerfile"
           CONTEXT="src/$SERVICE"
 
@@ -80,6 +79,7 @@ jobs:
             CONTEXT="src/cartservice/src"
           fi
 
+          # Skip frontend-gateway — no Dockerfile
           if [ "$SERVICE" = "frontend-gateway" ]; then
             echo "found=false" >> $GITHUB_OUTPUT
             exit 0
@@ -108,7 +108,7 @@ jobs:
           docker build -t $IMAGE_NAME -f $DOCKERFILE $CONTEXT
 
       ############################################################
-      # 6. TRIVY SECURITY SCAN (PROFESSIONAL SUMMARY)
+      # 6. TRIVY SECURITY SCAN
       ############################################################
       - name: Trivy Scan (Professional Output)
         if: steps.pathcheck.outputs.found == 'true'
@@ -125,6 +125,7 @@ jobs:
             -o trivy-reports/$REPORT \
             $IMAGE || true
 
+          # summary
           CRIT=$(grep -c "CRITICAL" trivy-reports/$REPORT || true)
           HIGH=$(grep -c "HIGH" trivy-reports/$REPORT || true)
           MED=$(grep -c "MEDIUM" trivy-reports/$REPORT || true)
@@ -133,8 +134,6 @@ jobs:
           echo "## 🛡 Trivy Security Scan — ${SERVICE}" >> $GITHUB_STEP_SUMMARY
           echo "**Image:** \`${IMAGE}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-
-          echo "### **Vulnerability Summary**" >> $GITHUB_STEP_SUMMARY
           echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
           echo "|---------|-------|" >> $GITHUB_STEP_SUMMARY
           echo "| 🔥 CRITICAL | $CRIT |" >> $GITHUB_STEP_SUMMARY
@@ -142,17 +141,8 @@ jobs:
           echo "| ⚠️ MEDIUM | $MED |" >> $GITHUB_STEP_SUMMARY
           echo "| 🔵 LOW | $LOW |" >> $GITHUB_STEP_SUMMARY
 
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "🔍 **Full Report (Click to Expand)**" >> $GITHUB_STEP_SUMMARY
-          echo "<details><summary>View Report</summary>" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          cat trivy-reports/$REPORT >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          echo "</details>" >> $GITHUB_STEP_SUMMARY
-
       ############################################################
-      # 7. UPLOAD TRIVY REPORT ARTIFACT
+      # 7. UPLOAD TRIVY REPORT
       ############################################################
       - name: Upload Trivy Report
         if: steps.pathcheck.outputs.found == 'true'
@@ -176,19 +166,23 @@ jobs:
                 --password-stdin 931058976119.dkr.ecr.us-east-1.amazonaws.com
 
       ############################################################
-      # 9. TAG & PUSH IMAGE TO AWS ECR
+      # 9. TAG & PUSH IMAGE TO ECR
       ############################################################
       - name: Tag & Push Image to ECR
+        id: ecr
         if: steps.pathcheck.outputs.found == 'true'
         run: |
           SERVICE="${{ matrix.service }}"
           SHA_SHORT=$(echo "${GITHUB_SHA}" | cut -c1-7)
           ECR_REPO="931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices"
 
-          docker tag "${SERVICE}:latest" "$ECR_REPO/${SERVICE}:${SHA_SHORT}"
+          IMAGE_TAG="$ECR_REPO/${SERVICE}:${SHA_SHORT}"
 
-          echo "🚀 Pushing image: $ECR_REPO/${SERVICE}:${SHA_SHORT}"
-          docker push "$ECR_REPO/${SERVICE}:${SHA_SHORT}"
+          docker tag "${SERVICE}:latest" "$IMAGE_TAG"
+          docker push "$IMAGE_TAG"
+
+          echo "service=$SERVICE" >> $GITHUB_OUTPUT
+          echo "image=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
       ############################################################
       # 10. CLEANUP DOCKER IMAGES
@@ -202,3 +196,38 @@ jobs:
 
           docker rmi "${SERVICE}:latest" || true
           docker rmi "$ECR_REPO/${SERVICE}:${SHA_SHORT}" || true
+
+      ############################################################
+      # 11. UPDATE DEV KUSTOMIZATION.YAML (GitOps)
+      ############################################################
+      - name: Update dev kustomization.yaml with new image tag
+        if: steps.pathcheck.outputs.found == 'true'
+        run: |
+          FILE="k8s-manifests/overlays/dev/kustomization.yaml"
+          SERVICE="${{ steps.ecr.outputs.service }}"
+          IMAGE="${{ steps.ecr.outputs.image }}"
+
+          # Remove old image entry
+          sed -i "/name: ${SERVICE}/,+2d" $FILE
+
+          # Append new image entry (only list items!)
+          cat <<EOF >> $FILE
+- name: ${SERVICE}
+  newName: ${IMAGE%:*}
+  newTag: ${IMAGE##*:}
+EOF
+
+      ############################################################
+      # 12. COMMIT UPDATED MANIFESTS (GitOps)
+      ############################################################
+      - name: Commit Updated Manifests
+        if: steps.pathcheck.outputs.found == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+
+          git add k8s-manifests/overlays/dev/kustomization.yaml
+          git commit -m "Update dev image tag for ${{ matrix.service }}"
+          git push

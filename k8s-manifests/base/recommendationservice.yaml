@@ -45,7 +45,7 @@ spec:
           readOnlyRootFilesystem: true
         image: recommendationservice
         ports:
-        - containerPort: 8080
+        - containerPort: 8085
         readinessProbe:
           periodSeconds: 5
           grpc:
@@ -81,8 +81,8 @@ spec:
     app: recommendationservice
   ports:
   - name: grpc
-    port: 8080
-    targetPort: 8080
+    port: 8085
+    targetPort: 8085
 ---
 apiVersion: v1
 kind: ServiceAccount
