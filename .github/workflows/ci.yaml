@@ -8,7 +8,7 @@ on:
 jobs:
 
   ############################################################
-  # 1. BUILD + SCAN + PUSH (MATRIX)
+  # 1. BUILD + PUSH TO ECR (MATRIX JOB)
   ############################################################
   build-scan:
     runs-on: self-hosted
@@ -29,12 +29,15 @@ jobs:
           - shippingservice
           - recommendationservice
 
+    outputs:
+      images: ${{ steps.collect.outputs.images }}
+
     steps:
 
       - name: Checkout
         uses: actions/checkout@v4
 
-      ############################################################ 
+      ############################################################
       # DETERMINE DOCKERFILE PATH
       ############################################################
       - name: Determine Dockerfile Path
@@ -44,12 +47,13 @@ jobs:
           DOCKERFILE="src/$SERVICE/Dockerfile"
           CONTEXT="src/$SERVICE"
 
+          # Cartservice has nested Dockerfile
           if [ "$SERVICE" = "cartservice" ]; then
             DOCKERFILE="src/cartservice/src/Dockerfile"
             CONTEXT="src/cartservice/src"
           fi
 
-          # frontend-gateway has no Dockerfile
+          # Frontend-gateway has NO Dockerfile → skip
           if [ "$SERVICE" = "frontend-gateway" ]; then
             echo "found=false" >> $GITHUB_OUTPUT
             exit 0
@@ -82,83 +86,81 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          aws ecr get-login-password --region us-east-1 |
-          docker login --username AWS \
+          aws ecr get-login-password --region us-east-1 \
+            | docker login --username AWS \
             --password-stdin 931058976119.dkr.ecr.us-east-1.amazonaws.com
 
       ############################################################
       # TAG & PUSH TO ECR
       ############################################################
       - name: Push Image to ECR
+        id: ecrpush
         if: steps.pathcheck.outputs.found == 'true'
         run: |
-          TAG=$(echo "${GITHUB_SHA}" | cut -c1-7)
+          SHA_TAG=$(echo "${GITHUB_SHA}" | cut -c1-7)
           ECR="931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices"
-          IMAGE="$ECR/${{ matrix.service }}:$TAG"
 
-          docker tag ${{ matrix.service }}:latest $IMAGE
-          docker push $IMAGE
+          docker tag ${{ matrix.service }}:latest $ECR/${{ matrix.service }}:$SHA_TAG
+          docker push $ECR/${{ matrix.service }}:$SHA_TAG
 
-          echo "$IMAGE" > image.txt
+          echo "image=$ECR/${{ matrix.service }}:$SHA_TAG" >> $GITHUB_OUTPUT
 
       ############################################################
-      # UPLOAD IMAGE TAG AS ARTIFACT
+      # COLLECT ALL IMAGE TAGS INTO SINGLE OUTPUT
       ############################################################
-      - name: Upload Image Artifact
-        if: steps.pathcheck.outputs.found == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: image-${{ matrix.service }}
-          path: image.txt
+      - name: Collect image outputs
+        id: collect
+        run: |
+          echo "images<<"EOF"" >> $GITHUB_OUTPUT
+          # Only add the image if the push step produced output
+          if [ -n "${{ steps.ecrpush.outputs.image }}" ]; then
+            echo "${{ steps.ecrpush.outputs.image }}" >> $GITHUB_OUTPUT
+          fi
+          echo "EOF" >> $GITHUB_OUTPUT
 
 
   ############################################################
-  # 2. UPDATE KUSTOMIZATION.YAML (ONE JOB ONLY)
+  # 2. UPDATE DEV KUSTOMIZATION.YAML (ONE JOB ONLY)
   ############################################################
   update-manifests:
     runs-on: self-hosted
     needs: build-scan
 
     steps:
+
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Download all image artifacts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: image-*
-          path: /tmp/images
-          merge-multiple: false
-
       ############################################################
-      # UPDATE DEV KUSTOMIZATION.YAML WITH ALL IMAGES
+      # UPDATE DEV KUSTOMIZATION.YAML
       ############################################################
       - name: Update kustomization.yaml with all images
         run: |
           FILE="k8s-manifests/overlays/dev/kustomization.yaml"
+
           echo "images:" > $FILE
 
-          # Loop through artifact directories
-          for d in /tmp/images/*; do
-            if [ -f "$d/image.txt" ]; then
-              IMG=$(cat "$d/image.txt")
-              NAME=$(echo "$IMG" | awk -F'[:/]' '{print $(NF-1)}')
-              TAG=$(echo "$IMG" | awk -F: '{print $2}')
-              REPO=$(echo "$IMG" | awk -F: '{print $1}')
+          # Loop through all images from matrix
+          while read IMG; do
+            [ -z "$IMG" ] && continue
 
-              cat <<EOF >> $FILE
+            NAME=$(echo "$IMG" | awk -F'[:/]' '{print $(NF-1)}')
+            TAG=$(echo "$IMG" | awk -F: '{print $2}')
+            REPO=$(echo "$IMG" | awk -F: '{print $1}')
+
+            cat <<EOF >> $FILE
             - name: $NAME
               newName: $REPO
               newTag: $TAG
 
           EOF
-                      fi
-                    done
+
+                    done <<< "${{ needs.build-scan.outputs.images }}"
 
       ############################################################
-      # COMMIT CHANGES
+      # COMMIT CHANGES (WITH PULL --REBASE)
       ############################################################
       - name: Commit manifest update
         env:
@@ -167,13 +169,17 @@ jobs:
           git config user.name "github-actions"
           git config user.email "actions@github.com"
 
+          # Prevent non-fast-forward errors
+          git pull --rebase origin main || true
+
           git add k8s-manifests/overlays/dev/kustomization.yaml
           git commit -m "Update image tags for all services" || exit 0
+
           git push https://x-access-token:${TOKEN}@github.com/${{ github.repository }}.git
 
 
   ############################################################
-  # 3. DONE (ARGOCD WILL AUTO-DEPLOY)
+  # 3. DONE (ARGOCD WILL AUTO-SYNC)
   ############################################################
   done:
     needs: update-manifests
