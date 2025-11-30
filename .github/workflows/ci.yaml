@@ -132,7 +132,7 @@ jobs:
           path: /tmp/images
           merge-multiple: false
 
-      ############################################################
+      ############################################################ 
       # UPDATE DEV KUSTOMIZATION.YAML WITH ALL IMAGES
       ############################################################
       - name: Update kustomization.yaml with all images
