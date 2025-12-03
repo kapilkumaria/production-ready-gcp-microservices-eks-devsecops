@@ -240,19 +240,3 @@ module "argocd_ingress" {
   domain      = "kapilkumaria.com"
   depends_on  = [module.argocd]
 }
-
-# Argo CD Application for NGINX Sample App
-module "argocd_app_nginx" {
-  source           = "./modules/argocd-app-nginx"
-  repo_url         = "https://github.com/kapilkumaria/production-ready-gcp-microservices-eks-devsecops.git"
-  target_revision  = "main"
-  app_path         = "terraform/manifests/nginx-app"
-  depends_upon     = [module.argocd]
-}
-
-module "argocd_repo" {
-  source          = "./modules/argocd-repo"
-  repo_url        = "https://github.com/kapilkumaria/production-ready-gcp-microservices-eks-devsecops.git"
-  github_username = var.github_username
-  github_token    = var.github_token
-}

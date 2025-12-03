@@ -1,6 +1,6 @@
 #!/bin/bash
 # ---------------------------------------------
-# Terraform Apply Sequence Script
+# Terraform Apply Sequence Script (Auto-Fixed)
 # Author: Kapil
 # Purpose: Rebuild full DevSecOps EKS + ArgoCD stack in order
 # ---------------------------------------------
@@ -10,23 +10,53 @@ set -e
 # Timestamped log file
 LOG_FILE="terraform_apply_$(date +%Y%m%d_%H%M%S).log"
 
-# Helper function
-apply_module() {
-  MODULE=$1
-  echo "🚀 Applying ${MODULE}..."
-  echo "----------------------------------------" | tee -a $LOG_FILE
-  echo "$(date): Applying ${MODULE}" | tee -a $LOG_FILE
-  terraform apply -target=${MODULE} -auto-approve | tee -a $LOG_FILE
-  echo "✅ Completed ${MODULE}" | tee -a $LOG_FILE
-  echo "----------------------------------------" | tee -a $LOG_FILE
-  sleep 10
-}
-
 echo "========================================"
 echo "🌍 Starting Full Terraform Apply Sequence"
 echo "Log File: ${LOG_FILE}"
 echo "========================================"
 echo
+
+# ---------------------------------------------
+# 🔧 0. Ensure helm repos exist
+# ---------------------------------------------
+echo "📦 Ensuring Helm repositories are configured..."
+helm repo add aws-ebs-csi-driver https://kubernetes-sigs.github.io/aws-ebs-csi-driver 2>/dev/null || true
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts 2>/dev/null || true
+helm repo add grafana https://grafana.github.io/helm-charts 2>/dev/null || true
+helm repo update
+
+# ---------------------------------------------
+# 🔧 1. Ensure terraform init is done
+# ---------------------------------------------
+if [ ! -d ".terraform" ]; then
+  echo "🔧 Running 'terraform init' (first time setup)..."
+  terraform init | tee -a $LOG_FILE
+else
+  echo "🔧 Terraform already initialized — skipping init."
+fi
+
+# ---------------------------------------------
+# Helper Function
+# ---------------------------------------------
+apply_module() {
+  MODULE=$1
+  echo "🚀 Applying ${MODULE}..."
+  echo "----------------------------------------" | tee -a $LOG_FILE
+  echo "$(date): Applying ${MODULE}" | tee -a $LOG_FILE
+
+  terraform apply -target=${MODULE} -auto-approve | tee -a $LOG_FILE || {
+      echo "❌ ERROR applying ${MODULE}. Check logs."
+      exit 1
+  }
+
+  echo "✅ Completed ${MODULE}" | tee -a $LOG_FILE
+  echo "----------------------------------------" | tee -a $LOG_FILE
+  sleep 10
+}
+
+# ---------------------------------------------
+# 2️⃣ Apply Modules in Order
+# ---------------------------------------------
 
 # 1️⃣ Base Infrastructure
 apply_module "module.vpc"
@@ -68,6 +98,10 @@ apply_module "module.argocd_ingress"
 
 # 6️⃣ Sample NGINX App via ArgoCD
 apply_module "module.argocd_app_nginx"
+
+# ---------------------------------------------
+# Finished
+# ---------------------------------------------
 
 echo
 echo "========================================"
