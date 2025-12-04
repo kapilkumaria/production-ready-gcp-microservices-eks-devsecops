@@ -2,12 +2,11 @@
 # ---------------------------------------------
 # Terraform Apply Sequence Script (Auto-Fixed)
 # Author: Kapil
-# Purpose: Rebuild full DevSecOps EKS + ArgoCD stack in order
+# Purpose: Fully automate DevSecOps EKS + ArgoCD + App-of-Apps deployment
 # ---------------------------------------------
 
 set -e
 
-# Timestamped log file
 LOG_FILE="terraform_apply_$(date +%Y%m%d_%H%M%S).log"
 
 echo "========================================"
@@ -17,7 +16,7 @@ echo "========================================"
 echo
 
 # ---------------------------------------------
-# 🔧 0. Ensure helm repos exist
+# 0️⃣ Ensure Helm repos exist
 # ---------------------------------------------
 echo "📦 Ensuring Helm repositories are configured..."
 helm repo add aws-ebs-csi-driver https://kubernetes-sigs.github.io/aws-ebs-csi-driver 2>/dev/null || true
@@ -26,39 +25,32 @@ helm repo add grafana https://grafana.github.io/helm-charts 2>/dev/null || true
 helm repo update
 
 # ---------------------------------------------
-# 🔧 1. Ensure terraform init is done
+# 1️⃣ Terraform Init
 # ---------------------------------------------
 if [ ! -d ".terraform" ]; then
-  echo "🔧 Running 'terraform init' (first time setup)..."
+  echo "🔧 Running 'terraform init'..."
   terraform init | tee -a $LOG_FILE
 else
-  echo "🔧 Terraform already initialized — skipping init."
+  echo "🔧 Terraform already initialized."
 fi
 
 # ---------------------------------------------
-# Helper Function
+# Helper: Apply specific module
 # ---------------------------------------------
 apply_module() {
   MODULE=$1
   echo "🚀 Applying ${MODULE}..."
-  echo "----------------------------------------" | tee -a $LOG_FILE
   echo "$(date): Applying ${MODULE}" | tee -a $LOG_FILE
-
-  terraform apply -target=${MODULE} -auto-approve | tee -a $LOG_FILE || {
-      echo "❌ ERROR applying ${MODULE}. Check logs."
-      exit 1
-  }
-
-  echo "✅ Completed ${MODULE}" | tee -a $LOG_FILE
-  echo "----------------------------------------" | tee -a $LOG_FILE
-  sleep 10
+  terraform apply -target=${MODULE} -auto-approve | tee -a $LOG_FILE
+  echo "✅ Completed ${MODULE}"
+  sleep 8
 }
 
 # ---------------------------------------------
 # 2️⃣ Apply Modules in Order
 # ---------------------------------------------
 
-# 1️⃣ Base Infrastructure
+# Base Infrastructure
 apply_module "module.vpc"
 apply_module "module.iam"
 apply_module "module.eks"
@@ -68,12 +60,12 @@ apply_module "module.storage"
 apply_module "module.irsa_role"
 apply_module "module.irsa_cert_manager"
 
-# 2️⃣ Cert-Manager & TLS
+# Cert-manager + TLS
 apply_module "module.cert_manager"
 apply_module "module.clusterissuer"
 apply_module "module.certificate"
 
-# 3️⃣ Monitoring & Observability
+# Monitoring
 apply_module "module.monitoring"
 apply_module "module.prometheus"
 apply_module "module.grafana"
@@ -83,28 +75,50 @@ apply_module "module.kube_state_metrics"
 apply_module "module.ingress_nginx"
 apply_module "module.route53"
 
-# 4️⃣ Individual Monitoring Ingresses
-apply_module "module.prometheus"
-apply_module "module.alertmanager"
-apply_module "module.grafana"
+# Ingresses
 apply_module "module.prometheus_ingress"
 apply_module "module.alertmanager_ingress"
 apply_module "module.grafana_ingress"
+apply_module "module.alertmanager"
 
-# 5️⃣ ArgoCD + Ingress
-apply_module "module.argocd.helm_release.argocd"
+# ArgoCD Installation
 apply_module "module.argocd"
 apply_module "module.argocd_ingress"
 
-# 6️⃣ Sample NGINX App via ArgoCD
+# ArgoCD Sample Nginx App
 apply_module "module.argocd_app_nginx"
 
+echo "🎉 Terraform Apply complete. Moving to ArgoCD automation..."
+
 # ---------------------------------------------
-# Finished
+# 3️⃣ Ensure kubeconfig is updated
 # ---------------------------------------------
+echo "🔧 Updating kubeconfig..."
+aws eks update-kubeconfig --name prod-ready-eks --region us-east-1
+
+# ---------------------------------------------
+# 4️⃣ Wait for ArgoCD to be ready
+# ---------------------------------------------
+echo "⏳ Waiting for ArgoCD server to roll out..."
+kubectl rollout status deployment/argocd-server -n argocd --timeout=300s
+
+# ---------------------------------------------
+# 5️⃣ Apply App-of-Apps for microservices
+# ---------------------------------------------
+echo "🚀 Applying ArgoCD App-of-Apps (dev)..."
+kubectl apply -f ../k8s-manifests/argocd-apps/dev/app-of-apps.yaml -n argocd
+
+echo "🎯 App-of-Apps deployed successfully!"
+
+# ---------------------------------------------
+# 6️⃣ Optional: Auto-sync everything
+# ---------------------------------------------
+echo "🔄 Triggering ArgoCD sync for root app..."
+argocd app sync dev-apps --grpc-web || true
 
 echo
 echo "========================================"
-echo "✅ Terraform Apply Completed Successfully"
+echo "✅ Full Environment Deployed Successfully"
 echo "📘 Logs saved to: ${LOG_FILE}"
+echo "🎉 All microservices will now appear in ArgoCD UI."
 echo "========================================"
