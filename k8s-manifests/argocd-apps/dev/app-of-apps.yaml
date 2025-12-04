@@ -8,9 +8,9 @@ spec:
   source:
     repoURL: https://github.com/kapilkumaria/production-ready-gcp-microservices-eks-devsecops.git
     targetRevision: HEAD
-    path: argocd-apps/dev
+    path: k8s-manifests/argocd-apps/dev
   destination:
-    server: https://kubernetes.default.svc
+    name: in-cluster
     namespace: argocd
   syncPolicy:
     automated:
@@ -18,3 +18,27 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+  sources:
+  # ALL 12 CHILD APPLICATIONS
+  - repoURL: https://github.com/kapilkumaria/production-ready-gcp-microservices-eks-devsecops.git
+    path: k8s-manifests/argocd-apps/dev/adservice.yaml
+  - repoURL: https://github.com/kapilkumaria/production-ready-gcp-microservices-eks-devsecops.git
+    path: k8s-manifests/argocd-apps/dev/cartservice.yaml
+  - repoURL: https://github.com/kapilkumaria/production-ready-gcp-microservices-eks-devsecops.git
+    path: k8s-manifests/argocd-apps/dev/checkoutservice.yaml
+  - repoURL: https://github.com/kapilkumaria/production-ready-gcp-microservices-eks-devsecops.git
+    path: k8s-manifests/argocd-apps/dev/currencyservice.yaml
+  - repoURL: https://github.com/kapilkumaria/production-ready-gcp-microservices-eks-devsecops.git
+    path: k8s-manifests/argocd-apps/dev/emailservice.yaml
+  - repoURL: https://github.com/kapilkumaria/production-ready-gcp-microservices-eks-devsecops.git
+    path: k8s-manifests/argocd-apps/dev/frontend-ui.yaml
+  - repoURL: https://github.com/kapilkumaria/production-ready-gcp-microservices-eks-devsecops.git
+    path: k8s-manifests/argocd-apps/dev/paymentservice.yaml
+  - repoURL: https://github.com/kapilkumaria/production-ready-gcp-microservices-eks-devsecops.git
+    path: k8s-manifests/argocd-apps/dev/productcatalog.yaml
+  - repoURL: https://github.com/kapilkumaria/production-ready-gcp-microservices-eks-devsecops.git
+    path: k8s-manifests/argocd-apps/dev/recommendationservice.yaml
+  - repoURL: https://github.com/kapilkumaria/production-ready-gcp-microservices-eks-devsecops.git
+    path: k8s-manifests/argocd-apps/dev/shippingservice.yaml
+  - repoURL: https://github.com/kapilkumaria/production-ready-gcp-microservices-eks-devsecops.git
+    path: k8s-manifests/argocd-apps/dev/shoppingassistant.yaml
