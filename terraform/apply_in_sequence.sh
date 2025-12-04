@@ -1,8 +1,7 @@
 #!/bin/bash
 # ---------------------------------------------
-# Terraform Apply Sequence Script (Auto-Fixed)
-# Author: Kapil
-# Purpose: Fully automate DevSecOps EKS + ArgoCD + App-of-Apps deployment
+# Terraform Apply + ArgoCD Automation Script
+# Author: Kapil (Final Correct Version)
 # ---------------------------------------------
 
 set -e
@@ -35,7 +34,7 @@ else
 fi
 
 # ---------------------------------------------
-# Helper: Apply specific module
+# Helper: Apply module
 # ---------------------------------------------
 apply_module() {
   MODULE=$1
@@ -43,14 +42,14 @@ apply_module() {
   echo "$(date): Applying ${MODULE}" | tee -a $LOG_FILE
   terraform apply -target=${MODULE} -auto-approve | tee -a $LOG_FILE
   echo "✅ Completed ${MODULE}"
-  sleep 8
+  sleep 6
 }
 
 # ---------------------------------------------
-# 2️⃣ Apply Modules in Order
+# 2️⃣ Apply Terraform Modules (in correct order)
 # ---------------------------------------------
 
-# Base Infrastructure
+# Base Infra
 apply_module "module.vpc"
 apply_module "module.iam"
 apply_module "module.eks"
@@ -65,7 +64,7 @@ apply_module "module.cert_manager"
 apply_module "module.clusterissuer"
 apply_module "module.certificate"
 
-# Monitoring
+# Monitoring + Observability
 apply_module "module.monitoring"
 apply_module "module.prometheus"
 apply_module "module.grafana"
@@ -75,50 +74,94 @@ apply_module "module.kube_state_metrics"
 apply_module "module.ingress_nginx"
 apply_module "module.route53"
 
-# Ingresses
-apply_module "module.prometheus_ingress"
-apply_module "module.alertmanager_ingress"
-apply_module "module.grafana_ingress"
+# Ingress order matters
 apply_module "module.alertmanager"
+apply_module "module.alertmanager_ingress"
+apply_module "module.prometheus_ingress"
+apply_module "module.grafana_ingress"
 
-# ArgoCD Installation
+# ArgoCD
 apply_module "module.argocd"
 apply_module "module.argocd_ingress"
 
-# ArgoCD Sample Nginx App
+# Sample app
 apply_module "module.argocd_app_nginx"
 
 echo "🎉 Terraform Apply complete. Moving to ArgoCD automation..."
 
 # ---------------------------------------------
-# 3️⃣ Ensure kubeconfig is updated
+# 3️⃣ Update kubeconfig
 # ---------------------------------------------
 echo "🔧 Updating kubeconfig..."
 aws eks update-kubeconfig --name prod-ready-eks --region us-east-1
 
 # ---------------------------------------------
-# 4️⃣ Wait for ArgoCD to be ready
+# 4️⃣ Wait for ArgoCD readiness
 # ---------------------------------------------
-echo "⏳ Waiting for ArgoCD server to roll out..."
+echo "⏳ Waiting for ArgoCD server rollout..."
 kubectl rollout status deployment/argocd-server -n argocd --timeout=300s
 
 # ---------------------------------------------
-# 5️⃣ Apply App-of-Apps for microservices
+# 5️⃣ Apply App-of-Apps
 # ---------------------------------------------
 echo "🚀 Applying ArgoCD App-of-Apps (dev)..."
 kubectl apply -f ../k8s-manifests/argocd-apps/dev/app-of-apps.yaml -n argocd
 
-echo "🎯 App-of-Apps deployed successfully!"
+echo "🎯 App-of-Apps applied!"
 
 # ---------------------------------------------
-# 6️⃣ Optional: Auto-sync everything
+# 6️⃣ Login to ArgoCD (auto-retry)
 # ---------------------------------------------
-echo "🔄 Triggering ArgoCD sync for root app..."
+echo "🔐 Logging into ArgoCD..."
+
+ARGOCD_SERVER="argocd.kapilkumaria.com"
+
+for i in {1..10}; do
+  ARGOCD_PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret \
+      -o jsonpath="{.data.password}" | base64 --decode || true)
+
+  if [[ -n "$ARGOCD_PASSWORD" ]]; then
+    argocd login $ARGOCD_SERVER \
+      --username admin \
+      --password "$ARGOCD_PASSWORD" \
+      --insecure \
+      --grpc-web && break
+  fi
+
+  echo "⏳ Waiting for ArgoCD admin secret... retry $i/10"
+  sleep 6
+done
+
+# ---------------------------------------------
+# 7️⃣ Register GitHub Repo in ArgoCD
+# ---------------------------------------------
+echo "🔐 Registering GitHub repo with ArgoCD..."
+
+if [[ -z "$GITHUB_USERNAME" || -z "$GITHUB_PAT" ]]; then
+  echo "❌ ERROR: Missing GitHub Credentials"
+  echo "You must export these once:"
+  echo "export GITHUB_USERNAME=\"kapilkumaria\""
+  echo "export GITHUB_PAT=\"<PAT>\""
+  exit 1
+fi
+
+argocd repo add https://github.com/kapilkumaria/production-ready-gcp-microservices-eks-devsecops.git \
+  --username "$GITHUB_USERNAME" \
+  --password "$GITHUB_PAT" \
+  --insecure \
+  --grpc-web || true
+
+echo "✅ GitHub repo registered!"
+
+# ---------------------------------------------
+# 8️⃣ Sync the root app
+# ---------------------------------------------
+echo "🔄 Triggering sync for root app dev-apps..."
 argocd app sync dev-apps --grpc-web || true
 
 echo
 echo "========================================"
 echo "✅ Full Environment Deployed Successfully"
+echo "🎉 All microservices are now syncing via ArgoCD!"
 echo "📘 Logs saved to: ${LOG_FILE}"
-echo "🎉 All microservices will now appear in ArgoCD UI."
 echo "========================================"
