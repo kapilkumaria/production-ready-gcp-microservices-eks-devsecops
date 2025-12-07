@@ -166,7 +166,8 @@ kubectl wait --for=condition=Ready pod -n kubernetes-dashboard --timeout=120s 2>
 
 echo "🔐 Generating Kubernetes Dashboard token (new Kubernetes method)..."
 
-DASHBOARD_TOKEN=$(kubectl -n kubernetes-dashboard create token admin-user 2>/dev/null || true)
+# Generate a token with a 10h TTL
+DASHBOARD_TOKEN=$(kubectl -n kubernetes-dashboard create token admin-user --duration=10h 2>/dev/null || true)
 
 if [[ -z "$DASHBOARD_TOKEN" ]]; then
   echo "⚠️  Dashboard token not ready yet. Waiting 10 seconds..."
