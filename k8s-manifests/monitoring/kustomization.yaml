@@ -11,17 +11,15 @@ configMapGenerator:
   - name: grafana-dashboards
     namespace: monitoring
     files:
-      - dashboards/node-exporter-full.json
       - dashboards/cluster-monitoring.json
-      - dashboards/workloads-overview.json
+      - dashboards/node-exporter-full.json
       - dashboards/global-overview.json
-      - dashboards/nodes-overview.json
+      - dashboards/workloads-overview.json
       - dashboards/namespace-overview.json
+      - dashboards/nodes-overview.json
       - dashboards/loki-logs-browser.json
       - dashboards/microservices-golden-signals.json
-
-generatorOptions:
-  disableNameSuffixHash: true
-
-commonAnnotations:
-  argocd.argoproj.io/sync-wave: "1"
+    options:
+      disableNameSuffixHash: true
+      labels:
+        grafana_dashboard: "1"
