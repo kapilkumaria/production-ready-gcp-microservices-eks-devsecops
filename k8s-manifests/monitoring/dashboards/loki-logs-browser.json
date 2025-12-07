@@ -1,0 +1,31 @@
+{
+  "id": null,
+  "uid": "loki-logs-browser",
+  "title": "Loki Logs Browser",
+  "tags": ["loki", "logs", "observability"],
+  "timezone": "browser",
+  "schemaVersion": 36,
+  "version": 1,
+  "panels": [
+    {
+      "type": "logs",
+      "title": "Loki Logs Explorer",
+      "datasource": {
+        "type": "loki",
+        "uid": "Loki"
+      },
+      "targets": [
+        {
+          "expr": "{job=\"kubernetes\"}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "showLabels": true,
+        "wrapLogMessage": true
+      },
+      "gridPos": { "h": 25, "w": 24, "x": 0, "y": 0 }
+    }
+  ]
+}

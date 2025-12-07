@@ -42,6 +42,14 @@ resource "aws_route53_record" "argocd" {
   records = [local.lb_hostname]
 }
 
+resource "aws_route53_record" "dashboard" {
+  zone_id = var.hosted_zone_id
+  name    = "dashboard.${var.domain}"
+  type    = "CNAME"
+  ttl     = 60
+  records = [local.lb_hostname]
+}
+
 resource "aws_route53_record" "nginx" {
   zone_id = var.hosted_zone_id
   name    = "nginx.${var.domain}"

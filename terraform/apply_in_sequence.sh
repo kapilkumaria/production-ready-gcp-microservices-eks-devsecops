@@ -1,7 +1,7 @@
 #!/bin/bash
 # ---------------------------------------------
 # Terraform Apply + ArgoCD Automation Script
-# Author: Kapil (Final Correct Version)
+# Author: Kapil (Final Correct Version + Dashboard Token Support)
 # ---------------------------------------------
 
 set -e
@@ -106,7 +106,6 @@ kubectl rollout status deployment/argocd-server -n argocd --timeout=300s
 # ---------------------------------------------
 echo "🚀 Applying ArgoCD App-of-Apps (dev)..."
 kubectl apply -f ../k8s-manifests/argocd-apps/dev/app-of-apps.yaml -n argocd
-
 echo "🎯 App-of-Apps applied!"
 
 # ---------------------------------------------
@@ -118,10 +117,10 @@ ARGOCD_SERVER="argocd.kapilkumaria.com"
 
 for i in {1..10}; do
   ARGOCD_PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret \
-      -o jsonpath="{.data.password}" | base64 --decode || true)
+      -o jsonpath="{.data.password}" | base64 --decode 2>/dev/null || true)
 
   if [[ -n "$ARGOCD_PASSWORD" ]]; then
-    argocd login $ARGOCD_SERVER \
+    argocd login "$ARGOCD_SERVER" \
       --username admin \
       --password "$ARGOCD_PASSWORD" \
       --insecure \
@@ -139,7 +138,6 @@ echo "🔐 Registering GitHub repo with ArgoCD..."
 
 if [[ -z "$GITHUB_USERNAME" || -z "$GITHUB_PAT" ]]; then
   echo "❌ ERROR: Missing GitHub Credentials"
-  echo "You must export these once:"
   echo "export GITHUB_USERNAME=\"kapilkumaria\""
   echo "export GITHUB_PAT=\"<PAT>\""
   exit 1
@@ -159,9 +157,41 @@ echo "✅ GitHub repo registered!"
 echo "🔄 Triggering sync for root app dev-apps..."
 argocd app sync dev-apps --grpc-web || true
 
+# ---------------------------------------------
+# 9️⃣ Generate Kubernetes Dashboard Token (EKS modern method)
+# ---------------------------------------------
+echo
+echo "⏳ Waiting for Kubernetes Dashboard namespace..."
+kubectl wait --for=condition=Ready pod -n kubernetes-dashboard --timeout=120s 2>/dev/null || true
+
+echo "🔐 Generating Kubernetes Dashboard token (new Kubernetes method)..."
+
+DASHBOARD_TOKEN=$(kubectl -n kubernetes-dashboard create token admin-user 2>/dev/null || true)
+
+if [[ -z "$DASHBOARD_TOKEN" ]]; then
+  echo "⚠️  Dashboard token not ready yet. Waiting 10 seconds..."
+  sleep 10
+  DASHBOARD_TOKEN=$(kubectl -n kubernetes-dashboard create token admin-user 2>/dev/null || true)
+fi
+
+if [[ -z "$DASHBOARD_TOKEN" ]]; then
+  echo "❌ ERROR: Failed to generate Dashboard token."
+else
+  echo "========================================"
+  echo "📌 Kubernetes Dashboard URL:"
+  echo "➡️  https://dashboard.kapilkumaria.com"
+  echo
+  echo "🔐 Dashboard Login Token:"
+  echo "$DASHBOARD_TOKEN"
+  echo "========================================"
+fi
+
+# ---------------------------------------------
+# 🎉 Finish
+# ---------------------------------------------
 echo
 echo "========================================"
 echo "✅ Full Environment Deployed Successfully"
-echo "🎉 All microservices are now syncing via ArgoCD!"
+echo "🎉 All microservices + Dashboard deployed via ArgoCD!"
 echo "📘 Logs saved to: ${LOG_FILE}"
 echo "========================================"

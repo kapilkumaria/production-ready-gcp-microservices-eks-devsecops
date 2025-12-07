@@ -4,6 +4,11 @@ kind: Kustomization
 namespace: kubernetes-dashboard
 
 resources:
-  - https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
+  - namespace.yaml
   - admin-service-account.yaml
+  - certificate.yaml
+  - https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
   - ingress.yaml
+
+patchesStrategicMerge:
+  - recommended-patch.yaml

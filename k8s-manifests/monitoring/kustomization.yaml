@@ -1,0 +1,27 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: monitoring
+
+resources:
+  - datasources.yaml
+  - grafana-dashboard-providers.yaml
+
+configMapGenerator:
+  - name: grafana-dashboards
+    namespace: monitoring
+    files:
+      - dashboards/node-exporter-full.json
+      - dashboards/cluster-monitoring.json
+      - dashboards/workloads-overview.json
+      - dashboards/global-overview.json
+      - dashboards/nodes-overview.json
+      - dashboards/namespace-overview.json
+      - dashboards/loki-logs-browser.json
+      - dashboards/microservices-golden-signals.json
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+commonAnnotations:
+  argocd.argoproj.io/sync-wave: "1"
