@@ -8,10 +8,22 @@ resources:
   - grafana-dashboard-providers.yaml
   - grafana-dashboards-volume.yaml
 
-# Patch to remove old grafana-dashboards volume + mount
-patchesStrategicMerge:
-  - patch-remove-old-dashboard-volume.yaml
-  - patch-grafana-add-dashboards-volume.yaml
+patches:
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: kube-prometheus-stack-grafana
+      namespace: monitoring
+    path: patch-remove-old-dashboard-volume.yaml
+
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: kube-prometheus-stack-grafana
+      namespace: monitoring
+    path: patch-grafana-add-dashboards-volume.yaml
 
 
 # Split dashboards into individual ConfigMaps

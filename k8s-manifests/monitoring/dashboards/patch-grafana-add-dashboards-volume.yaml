@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kube-prometheus-stack-grafana
+  namespace: monitoring
+spec:
+  template:
+    spec:
+      volumes:
+        - name: grafana-dashboards
+          projected:
+            sources:
+              - configMap:
+                  name: dashboard-cluster-monitoring
+              - configMap:
+                  name: dashboard-global-overview
+              - configMap:
+                  name: dashboard-loki-logs-browser
+              - configMap:
+                  name: dashboard-microservices-golden-signals
+              - configMap:
+                  name: dashboard-namespace-overview
+              - configMap:
+                  name: dashboard-nodes-overview
+              - configMap:
+                  name: dashboard-workloads-overview
+
+      containers:
+        - name: grafana
+          volumeMounts:
+            - name: grafana-dashboards
+              mountPath: /var/lib/grafana/dashboards
