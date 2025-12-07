@@ -12,6 +12,7 @@ resources:
 patchesStrategicMerge:
   - patch-remove-old-dashboard-volume.yaml
 
+
 # Split dashboards into individual ConfigMaps
 configMapGenerator:
   - name: dashboard-cluster-monitoring
