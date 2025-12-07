@@ -4,41 +4,24 @@ kind: Kustomization
 namespace: monitoring
 
 resources:
+  - grafana-datasources.yaml
   - grafana-dashboard-providers.yaml
-  - datasources.yaml
+  - grafana-dashboards-volume.yaml
 
+# Generate one ConfigMap per dashboard file WITHOUT embedding into annotations
 configMapGenerator:
-  - name: dashboard-cluster-monitoring
+  - name: grafana-dashboards
     files:
       - dashboards/cluster-monitoring.json
-
-  - name: dashboard-global-overview
-    files:
       - dashboards/global-overview.json
-
-  - name: dashboard-loki-logs-browser
-    files:
       - dashboards/loki-logs-browser.json
-
-  - name: dashboard-microservices-golden-signals
-    files:
       - dashboards/microservices-golden-signals.json
-
-  - name: dashboard-namespace-overview
-    files:
       - dashboards/namespace-overview.json
-
-  - name: dashboard-node-exporter-full
-    files:
       - dashboards/node-exporter-full.json
-
-  - name: dashboard-nodes-overview
-    files:
       - dashboards/nodes-overview.json
-
-  - name: dashboard-workloads-overview
-    files:
       - dashboards/workloads-overview.json
 
 generatorOptions:
   disableNameSuffixHash: true
+  annotations:
+    grafana_dashboard: "1"
