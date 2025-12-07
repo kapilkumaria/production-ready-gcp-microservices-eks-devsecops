@@ -4,12 +4,12 @@ kind: Kustomization
 namespace: monitoring
 
 resources:
-  # Base Grafana resources (MUST include deployment!)
   - grafana-datasources.yaml
   - grafana-dashboard-providers.yaml
-  - grafana-dashboards-volume.yaml
-  - grafana-deployment.yaml                
 
+# REMOVE ALL grafana-dashboards-volume patches
+# REMOVE grafana-deployment.yaml
+# REMOVE any patches that modify Grafana Deployment
 
 configMapGenerator:
   - name: dashboard-cluster-monitoring
