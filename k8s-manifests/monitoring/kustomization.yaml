@@ -8,9 +8,12 @@ resources:
   - grafana-dashboard-providers.yaml
   - grafana-dashboards-volume.yaml
 
-# Split dashboards into individual ConfigMaps (fixes size limit)
-configMapGenerator:
+# Patch to remove old grafana-dashboards volume + mount
+patchesStrategicMerge:
+  - patch-remove-old-dashboard-volume.yaml
 
+# Split dashboards into individual ConfigMaps
+configMapGenerator:
   - name: dashboard-cluster-monitoring
     files:
       - dashboards/cluster-monitoring.json
