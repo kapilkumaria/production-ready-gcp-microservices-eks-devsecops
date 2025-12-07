@@ -11,6 +11,7 @@ resources:
 # Patch to remove old grafana-dashboards volume + mount
 patchesStrategicMerge:
   - patch-remove-old-dashboard-volume.yaml
+  - patch-grafana-add-dashboards-volume.yaml
 
 
 # Split dashboards into individual ConfigMaps
