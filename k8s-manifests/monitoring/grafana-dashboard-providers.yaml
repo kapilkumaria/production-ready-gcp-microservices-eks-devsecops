@@ -2,14 +2,20 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: grafana-dashboard-providers
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
 data:
   provider.yaml: |
     apiVersion: 1
     providers:
       - name: 'custom-dashboards'
+        orgId: 1
+        folder: ''
         type: file
-        folder: 'Custom Dashboards'
-        options:
-          path: /var/lib/grafana/dashboards/custom
+        disableDeletion: false
         editable: true
-        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        options:
+          # IMPORTANT: this must match sidecar env FOLDER=/tmp/dashboards
+          path: /tmp/dashboards
