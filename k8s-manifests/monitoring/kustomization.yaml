@@ -7,10 +7,6 @@ resources:
   - grafana-datasources.yaml
   - grafana-dashboard-providers.yaml
 
-# REMOVE ALL grafana-dashboards-volume patches
-# REMOVE grafana-deployment.yaml
-# REMOVE any patches that modify Grafana Deployment
-
 configMapGenerator:
   - name: dashboard-cluster-monitoring
     files:
