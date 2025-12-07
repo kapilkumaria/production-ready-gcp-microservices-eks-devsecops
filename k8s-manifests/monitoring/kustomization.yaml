@@ -6,27 +6,8 @@ namespace: monitoring
 resources:
   - grafana-datasources.yaml
   - grafana-dashboard-providers.yaml
-  - grafana-dashboards-volume.yaml
 
-patches:
-  - target:
-      group: apps
-      version: v1
-      kind: Deployment
-      name: kube-prometheus-stack-grafana
-      namespace: monitoring
-    path: patch-remove-old-dashboard-volume.yaml
-
-  - target:
-      group: apps
-      version: v1
-      kind: Deployment
-      name: kube-prometheus-stack-grafana
-      namespace: monitoring
-    path: patch-grafana-add-dashboards-volume.yaml
-
-
-# Split dashboards into individual ConfigMaps
+# Split dashboards into separate ConfigMaps
 configMapGenerator:
   - name: dashboard-cluster-monitoring
     files:
