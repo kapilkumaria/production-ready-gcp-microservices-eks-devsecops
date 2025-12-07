@@ -4,22 +4,41 @@ kind: Kustomization
 namespace: monitoring
 
 resources:
-  - datasources.yaml
   - grafana-dashboard-providers.yaml
+  - datasources.yaml
 
 configMapGenerator:
-  - name: grafana-dashboards
-    namespace: monitoring
+  - name: dashboard-cluster-monitoring
     files:
       - dashboards/cluster-monitoring.json
-      - dashboards/node-exporter-full.json
+
+  - name: dashboard-global-overview
+    files:
       - dashboards/global-overview.json
-      - dashboards/workloads-overview.json
-      - dashboards/namespace-overview.json
-      - dashboards/nodes-overview.json
+
+  - name: dashboard-loki-logs-browser
+    files:
       - dashboards/loki-logs-browser.json
+
+  - name: dashboard-microservices-golden-signals
+    files:
       - dashboards/microservices-golden-signals.json
-    options:
-      disableNameSuffixHash: true
-      labels:
-        grafana_dashboard: "1"
+
+  - name: dashboard-namespace-overview
+    files:
+      - dashboards/namespace-overview.json
+
+  - name: dashboard-node-exporter-full
+    files:
+      - dashboards/node-exporter-full.json
+
+  - name: dashboard-nodes-overview
+    files:
+      - dashboards/nodes-overview.json
+
+  - name: dashboard-workloads-overview
+    files:
+      - dashboards/workloads-overview.json
+
+generatorOptions:
+  disableNameSuffixHash: true
