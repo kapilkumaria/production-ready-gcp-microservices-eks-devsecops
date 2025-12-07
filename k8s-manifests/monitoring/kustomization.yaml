@@ -31,10 +31,6 @@ configMapGenerator:
     files:
       - dashboards/namespace-overview.json
 
-  # - name: dashboard-node-exporter-full
-  #   files:
-  #     - dashboards/node-exporter-full.json
-
   - name: dashboard-nodes-overview
     files:
       - dashboards/nodes-overview.json
