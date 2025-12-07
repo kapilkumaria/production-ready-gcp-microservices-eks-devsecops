@@ -5,17 +5,15 @@ metadata:
   namespace: monitoring
   labels:
     grafana_dashboard: "1"
-    app: grafana
 data:
-  provider.yaml: |
+  dashboards.yaml: |
     apiVersion: 1
     providers:
-      - name: 'gitops-dashboards'
+      - name: 'default'
         orgId: 1
-        folder: 'Kubernetes Dashboards'
+        folder: 'K8s Dashboards'
         type: file
         disableDeletion: false
         editable: true
-        updateIntervalSeconds: 10
         options:
           path: /var/lib/grafana/dashboards
