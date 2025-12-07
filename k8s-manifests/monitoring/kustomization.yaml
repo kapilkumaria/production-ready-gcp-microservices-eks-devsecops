@@ -45,5 +45,5 @@ configMapGenerator:
 
 generatorOptions:
   disableNameSuffixHash: true
-  annotations:
+  labels:
     grafana_dashboard: "1"
