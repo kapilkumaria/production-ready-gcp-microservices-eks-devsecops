@@ -1,8 +1,8 @@
 #!/bin/bash
 # --------------------------------------------------
-# Terraform Destroy Sequence Script (Final Correct)
+# Terraform Destroy Sequence Script (Final Correct Version)
 # Author: Kapil
-# Purpose: Tear down full DevSecOps EKS stack safely
+# Purpose: Safely tear down full DevSecOps EKS stack
 # --------------------------------------------------
 
 set -e
@@ -16,7 +16,7 @@ echo "========================================"
 echo
 
 # --------------------------------------------------
-# Init Terraform if needed
+# Terraform Init
 # --------------------------------------------------
 if [ ! -d ".terraform" ]; then
   echo "🔧 Running 'terraform init'..."
@@ -26,7 +26,7 @@ else
 fi
 
 # --------------------------------------------------
-# Helper
+# Helper function
 # --------------------------------------------------
 destroy_module() {
   MODULE=$1
@@ -44,54 +44,54 @@ destroy_module() {
 }
 
 # --------------------------------------------------
-# MUST DESTROY IN PERFECT REVERSE ORDER OF APPLY
+# DESTROY IN ***REVERSE*** ORDER OF APPLY
 # --------------------------------------------------
 
-# 7️⃣ ArgoCD resources
+# 1️⃣ APPLICATIONS & INGRESS (destroy first)
 destroy_module "module.argocd_app_nginx"
 destroy_module "module.argocd_ingress"
 destroy_module "module.argocd"
-destroy_module "module.argocd_repo"
 
-# 6️⃣ Monitoring ingresses
+# Frontend UI Ingress
+destroy_module "module.frontend_ui_ingress"
+
+# 2️⃣ INGRESSES (Monitoring)
 destroy_module "module.grafana_ingress"
 destroy_module "module.prometheus_ingress"
 destroy_module "module.alertmanager_ingress"
 
-# 5️⃣ Observability stack
-destroy_module "module.alertmanager"
+# 3️⃣ ROUTE53 + INGRESS-NGINX
+destroy_module "module.route53"
+destroy_module "module.ingress_nginx"
+
+# 4️⃣ OBSERVABILITY STACK
 destroy_module "module.grafana"
 destroy_module "module.prometheus"
+destroy_module "module.alertmanager"
 destroy_module "module.loki"
 destroy_module "module.promtail"
 destroy_module "module.kube_state_metrics"
 destroy_module "module.monitoring"
-destroy_module "module.ingress_nginx"
 
-# 4️⃣ TLS + Cert-Manager
+# 5️⃣ CERT-MANAGER + TLS
 destroy_module "module.certificate"
 destroy_module "module.clusterissuer"
 destroy_module "module.cert_manager"
 
-# 3️⃣ IRSA roles
+# 6️⃣ IRSA ROLES
 destroy_module "module.irsa_cert_manager"
 destroy_module "module.irsa_role"
-destroy_module "module.irsa"
 
-# 2️⃣ Storage + CSI
+# 7️⃣ STORAGE + CSI
 destroy_module "module.storage"
 destroy_module "module.ebs_csi"
 
-# 1️⃣ EKS + IAM
+# 8️⃣ EKS + IAM + OIDC
 destroy_module "module.iam_oidc"
 destroy_module "module.eks"
 destroy_module "module.iam"
 
-# 0️⃣ Route53 + Root Ingress
-destroy_module "module.route53"
-destroy_module "module.root_ingress"
-
-# -1️⃣ Final VPC (must always be last)
+# 9️⃣ VPC (Must ALWAYS be last!)
 destroy_module "module.vpc"
 
 echo
