@@ -1,21 +1,19 @@
 variable "namespace" {
-  type        = string
-  description = "Namespace where frontend-ui service exists"
+  type = string
 }
 
 variable "domain" {
-  type        = string
-  description = "Domain name for ingress"
+  type = string
+}
+
+variable "subdomain" {
+  type = string
 }
 
 variable "service_name" {
-  type        = string
-  description = "Frontend UI service name"
+  type = string
 }
 
 variable "service_port" {
-  type        = number
-  default     = 80
+  type = number
 }
-
-

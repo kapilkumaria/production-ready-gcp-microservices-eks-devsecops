@@ -32,9 +32,9 @@ module "eks" {
   source     = "./modules/eks"
   aws_region = var.aws_region
 
-  project_name  = var.project_name
-  environment   = var.environment
-  cluster_name  = var.cluster_name
+  project_name   = var.project_name
+  environment    = var.environment
+  cluster_name   = var.cluster_name
   cluster_version = var.cluster_version
 
   cluster_role_arn = module.iam.eks_cluster_role_arn
@@ -65,7 +65,7 @@ module "iam_oidc" {
 data "aws_caller_identity" "current" {}
 
 #############################################
-# IRSA for Application Workloads
+# IRSA for workloads
 #############################################
 module "irsa" {
   source = "./modules/irsa"
@@ -77,7 +77,7 @@ module "irsa" {
 }
 
 #############################################
-# Monitoring Stack: Prometheus + Grafana
+# Monitoring Stack
 #############################################
 module "monitoring" {
   source = "./modules/monitoring"
@@ -106,7 +106,6 @@ module "irsa_cert_manager" {
 module "cert_manager" {
   source        = "./modules/cert-manager"
   irsa_role_arn = module.irsa_cert_manager.cert_manager_irsa_role_arn
-
   depends_on = [
     module.irsa_cert_manager,
     module.eks
@@ -127,7 +126,7 @@ module "certificate" {
 }
 
 #############################################
-# Prometheus Stack
+# Observability Stack
 #############################################
 module "prometheus" {
   source    = "./modules/observability/prometheus"
@@ -135,9 +134,6 @@ module "prometheus" {
   domain    = var.domain_name
 }
 
-#############################################
-# EBS CSI Driver
-#############################################
 module "ebs_csi" {
   source = "./modules/observability/ebs-csi"
 
@@ -146,16 +142,10 @@ module "ebs_csi" {
   oidc_provider_arn = module.eks.oidc_provider_arn
 }
 
-#############################################
-# StorageClass / PVC infra
-#############################################
 module "storage" {
   source = "./modules/storage"
 }
 
-#############################################
-# Loki logging system
-#############################################
 module "loki" {
   source    = "./modules/observability/loki"
   namespace = "monitoring"
@@ -164,18 +154,12 @@ module "loki" {
   dependency_storage_class = module.storage
 }
 
-#############################################
-# Promtail Log Shipper
-#############################################
 module "promtail" {
   source          = "./modules/observability/promtail"
   namespace       = "monitoring"
   dependency_loki = module.loki
 }
 
-#############################################
-# Kube State Metrics
-#############################################
 module "kube_state_metrics" {
   source                = "./modules/observability/kube-state-metrics"
   namespace             = "monitoring"
@@ -203,7 +187,7 @@ module "alertmanager" {
 }
 
 #############################################
-# Placeholder root ingress
+# Root Placeholder Ingress
 #############################################
 module "root_ingress" {
   source = "./modules/root-ingress"
@@ -215,28 +199,23 @@ module "root_ingress" {
 #############################################
 module "route53" {
   source            = "./modules/route53"
-
   hosted_zone_id    = module.irsa_cert_manager.zone_id
   domain            = var.domain_name
-
   create_apex_alias = true
-  nlb_hosted_zone_id = module.ingress_nginx.lb_zone_id
+
+  # FROM ingress-nginx output (hostname of the NLB)
+  nlb_dns_name       = module.ingress_nginx.ingress_nginx_hostname
+  nlb_hosted_zone_id = "Z35SXDOTRQ7X7K" # NLB Zone ID (correct for us-east-1)
 
   additional_records = {
     gcp = {
-      name = "gcp"
-      type = "A"
-      alias = {
-        name                   = module.ingress_nginx.lb_dns_name
-        zone_id                = module.ingress_nginx.lb_zone_id
-        evaluate_target_health = false
-      }
+      name = "gcp"  # produces gcp.kapilkumaria.com → <NLB DNS>
     }
   }
 }
 
 #############################################
-# Alertmanager + Prometheus Ingress Routes
+# Ingresses for Observability
 #############################################
 module "alertmanager_ingress" {
   source = "./modules/observability/alertmanager-ingress"
@@ -262,17 +241,18 @@ module "argocd_ingress" {
   source    = "./modules/argocd-ingress"
   namespace = "argocd"
   domain    = var.domain_name
+
   depends_on = [module.argocd]
 }
 
 #############################################
-# Frontend-UI Ingress (main application)
+# Frontend UI Ingress (Main App)
 #############################################
 module "frontend_ui_ingress" {
   source       = "./modules/frontend-ui-ingress"
   namespace    = "default"
-  subdomain    = "gcp"
   domain       = var.domain_name
+  subdomain    = "gcp"
   service_name = "frontend-ui"
   service_port = 80
 

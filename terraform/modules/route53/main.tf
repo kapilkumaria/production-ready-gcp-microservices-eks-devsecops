@@ -64,28 +64,11 @@ resource "aws_route53_record" "additional" {
 
   zone_id = var.hosted_zone_id
   name    = "${each.value.name}.${var.domain}"
-  type    = each.value.type
-
-  alias {
-    name                   = each.value.alias.name
-    zone_id                = each.value.alias.zone_id
-    evaluate_target_health = each.value.alias.evaluate_target_health
-  }
+  type    = "CNAME"
+  ttl     = 60
+  records = [var.nlb_dns_name]
 }
 
-
-# # Optional: apex ALIAS (recommended)
-# resource "aws_route53_record" "apex" {
-#   count   = var.create_apex_alias && var.nlb_hosted_zone_id != "" ? 1 : 0
-#   zone_id = var.hosted_zone_id
-#   name    = var.domain
-#   type    = "A"
-#   alias {
-#     name                   = local.lb_hostname
-#     zone_id                = var.nlb_hosted_zone_id  # from aws elbv2 describe-load-balancers
-#     evaluate_target_health = false
-#   }
-# }
 
 output "ingress_lb_hostname" {
   value = local.lb_hostname

@@ -79,6 +79,7 @@ apply_module "module.alertmanager"
 apply_module "module.alertmanager_ingress"
 apply_module "module.prometheus_ingress"
 apply_module "module.grafana_ingress"
+apply_module "module.frontend_ui_ingress"
 
 # ArgoCD
 apply_module "module.argocd"
