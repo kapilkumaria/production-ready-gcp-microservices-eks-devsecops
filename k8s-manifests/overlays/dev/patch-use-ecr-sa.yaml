@@ -1,0 +1,8 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: not-used   # Kustomize applies it to ALL deployments
+spec:
+  template:
+    spec:
+      serviceAccountName: ecr-access
