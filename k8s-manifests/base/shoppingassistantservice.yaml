@@ -14,7 +14,7 @@ spec:
       labels:
         app: shoppingassistantservice
     spec:
-      serviceAccountName: shoppingassistantservice
+      
       terminationGracePeriodSeconds: 5
       securityContext:
         fsGroup: 1000

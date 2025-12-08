@@ -15,7 +15,7 @@ spec:
       annotations:
         sidecar.istio.io/rewriteAppHTTPProbers: "true"
     spec:
-      serviceAccountName: frontend-ui
+      
       securityContext:
         fsGroup: 1000
         runAsGroup: 1000

@@ -27,7 +27,6 @@ spec:
       labels:
         app: cartservice
     spec:
-      serviceAccountName: cartservice
       terminationGracePeriodSeconds: 5
       securityContext:
         fsGroup: 1000

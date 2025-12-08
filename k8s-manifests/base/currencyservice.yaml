@@ -27,7 +27,7 @@ spec:
       labels:
         app: currencyservice
     spec:
-      serviceAccountName: currencyservice
+      
       terminationGracePeriodSeconds: 5
       securityContext:
         fsGroup: 1000

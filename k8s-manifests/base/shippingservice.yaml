@@ -27,7 +27,7 @@ spec:
       labels:
         app: shippingservice
     spec:
-      serviceAccountName: shippingservice
+      
       securityContext:
         fsGroup: 1000
         runAsGroup: 1000

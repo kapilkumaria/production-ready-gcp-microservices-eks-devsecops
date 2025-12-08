@@ -27,7 +27,7 @@ spec:
       labels:
         app: emailservice
     spec:
-      serviceAccountName: emailservice
+      
       terminationGracePeriodSeconds: 5
       securityContext:
         fsGroup: 1000
