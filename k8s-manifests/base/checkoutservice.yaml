@@ -88,8 +88,3 @@ spec:
   - name: grpc
     port: 5050
     targetPort: 5050
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: checkoutservice

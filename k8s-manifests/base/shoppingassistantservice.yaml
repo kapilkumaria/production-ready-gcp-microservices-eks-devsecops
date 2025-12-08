@@ -71,8 +71,3 @@ spec:
     - name: http
       port: 8080         # Cluster-wide port
       targetPort: 8080   # Must match containerPort
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: shoppingassistantservice

@@ -81,11 +81,6 @@ spec:
     port: 7070
     targetPort: 7070
 ---
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: cartservice
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:

@@ -83,8 +83,3 @@ spec:
   - name: grpc
     port: 8085
     targetPort: 8085
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: recommendationservice

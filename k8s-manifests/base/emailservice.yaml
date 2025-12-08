@@ -81,8 +81,3 @@ spec:
   - name: grpc
     port: 5000
     targetPort: 8080
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: emailservice
