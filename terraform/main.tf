@@ -126,14 +126,6 @@ module "prometheus" {
   domain    = var.domain_name
 }
 
-# Grafana Module Call
-module "grafana" {
-  source                 = "./modules/observability/grafana"
-  namespace              = "monitoring"
-  grafana_admin_password = "Kapil123!"
-  # domain = var.domain_name
-}
-
 # EBS CSI Module Call
 # EBS CSI (must come before any PVC-using apps)
 module "ebs_csi" {
@@ -211,12 +203,6 @@ module "route53" {
 module "alertmanager_ingress" {
   source = "./modules/observability/alertmanager-ingress"
   domain = var.domain_name # Make sure your main.tf uses var.domain_name
-}
-
-# Grafana Ingress Module Call
-module "grafana_ingress" {
-  source = "./modules/observability/grafana-ingress"
-  domain = var.domain_name
 }
 
 # Prometheus Ingress Module Call

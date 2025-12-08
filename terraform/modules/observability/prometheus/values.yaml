@@ -1,6 +1,67 @@
+###############################################
+# GRAFANA CONFIGURATION (Enabled)
+###############################################
 grafana:
   enabled: true
+
+  adminUser: admin
+  adminPassword: "admin123"   # CHANGE THIS
+
+  service:
+    type: ClusterIP
+    port: 80
+
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - grafana.kapilkumaria.com
+    tls:
+      - secretName: grafana-tls
+        hosts:
+          - grafana.kapilkumaria.com
+
+  persistence:
+    enabled: true
+    type: pvc
+    size: 10Gi
+    storageClassName: gp3
+
+  ###############################################
+  # Auto load dashboards from ConfigMaps (ArgoCD)
+  ###############################################
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+    datasources:
+      enabled: true
+
+###############################################
+# PROMETHEUS CONFIG
+###############################################
 prometheus:
   prometheusSpec:
     serviceMonitorSelector: {}
     podMonitorSelector: {}
+
+###############################################
+# ADD DATASOURCES
+###############################################
+grafanaDatasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        url: http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090
+        access: proxy
+        isDefault: true
+
+      - name: Loki
+        type: loki
+        url: http://loki.monitoring.svc.cluster.local:3100
+        access: proxy
+        jsonData:
+          maxLines: 5000

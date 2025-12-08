@@ -1,17 +1,5 @@
 #########################################
-# 1. Create Monitoring Namespace
-#########################################
-# resource "kubernetes_namespace" "monitoring" {
-#   metadata {
-#     name = "monitoring"
-#     labels = {
-#       "app.kubernetes.io/name" = "monitoring"
-#     }
-#   }
-# }
-
-#########################################
-# 2. Create Service Account for Prometheus (optional but recommended)
+# 1. Create Service Account for Prometheus
 #########################################
 resource "kubernetes_service_account" "prometheus" {
   metadata {
@@ -28,7 +16,7 @@ resource "kubernetes_service_account" "prometheus" {
 }
 
 #########################################
-# 3. Deploy Prometheus Stack using Helm
+# 2. Kube Prometheus Stack (with Grafana enabled)
 #########################################
 resource "helm_release" "prometheus_stack" {
   name       = "kube-prometheus-stack"
@@ -37,7 +25,9 @@ resource "helm_release" "prometheus_stack" {
   version    = var.chart_version
   namespace  = var.namespace
 
-  values = [ file("${path.module}/values.yaml") ]
+  values = [
+    file("${path.module}/values.yaml")
+  ]
 
   depends_on = [
     var.namespace,
@@ -45,18 +35,17 @@ resource "helm_release" "prometheus_stack" {
   ]
 }
 
-
 #########################################
-# 4. (Optional) Output Prometheus Endpoint & Namespace
+# 3. Outputs
 #########################################
-# output "prometheus_namespace" {
-#   value = kubernetes_namespace.monitoring.metadata[0].name
-# }
-
 output "prometheus_helm_status" {
   value = helm_release.prometheus_stack.status
 }
 
 output "prometheus_chart_version" {
   value = helm_release.prometheus_stack.version
+}
+
+output "grafana_url" {
+  value = "https://grafana.${var.domain}"
 }
