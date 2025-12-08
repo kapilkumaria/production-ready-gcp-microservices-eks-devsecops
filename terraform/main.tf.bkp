@@ -1,14 +1,10 @@
-#############################################
-# Main Terraform file for Production EKS + GitOps
-#############################################
+# Main Terraform configuration file for AWS EKS cluster with monitoring and ingress setup
 
 data "aws_availability_zones" "available" {
   state = "available"
 }
 
-#############################################
-# VPC
-#############################################
+# VPC Module Call
 module "vpc" {
   source             = "./modules/vpc"
   aws_region         = var.aws_region
@@ -16,57 +12,58 @@ module "vpc" {
   availability_zones = data.aws_availability_zones.available.names
 }
 
-#############################################
-# IAM
-#############################################
+# IAM Module Call
 module "iam" {
   source       = "./modules/iam"
   project_name = var.project_name
   cluster_name = var.cluster_name
 }
 
-#############################################
-# EKS Cluster
-#############################################
+# EKS Module Call
 module "eks" {
   source     = "./modules/eks"
   aws_region = var.aws_region
 
-  project_name  = var.project_name
-  environment   = var.environment
-  cluster_name  = var.cluster_name
-  cluster_version = var.cluster_version
+  project_name = var.project_name
+  environment  = var.environment
 
+  cluster_name     = var.cluster_name
+  cluster_version  = var.cluster_version
   cluster_role_arn = module.iam.eks_cluster_role_arn
   node_role_arn    = module.iam.eks_node_role_arn
   subnet_ids       = module.vpc.private_subnet_ids
 
+  # Endpoint access strategy
   endpoint_public_access  = true
   endpoint_private_access = false
 
+  # Node group config
   instance_types = ["t3.large"]
   disk_size      = 20
   desired_size   = 2
   min_size       = 2
   max_size       = 4
 
-  tags = { Owner = "kapil" }
+  tags = {
+    Owner = "kapil"
+  }
 }
 
-#############################################
-# IAM OIDC
-#############################################
 module "iam_oidc" {
   source       = "./modules/iam-oidc"
   cluster_name = module.eks.cluster_name
   depends_on   = [module.eks]
 }
 
+
+# Fetch cluster OIDC info
+data "aws_eks_cluster" "cluster" {
+  name = module.eks.cluster_name
+}
+
+# IRSA Module Call
 data "aws_caller_identity" "current" {}
 
-#############################################
-# IRSA for Application Workloads
-#############################################
 module "irsa" {
   source = "./modules/irsa"
 
@@ -76,9 +73,7 @@ module "irsa" {
   account_id              = data.aws_caller_identity.current.account_id
 }
 
-#############################################
-# Monitoring Stack: Prometheus + Grafana
-#############################################
+# Monitoring Module Call
 module "monitoring" {
   source = "./modules/monitoring"
 
@@ -86,26 +81,22 @@ module "monitoring" {
   cluster_endpoint                   = module.eks.cluster_endpoint
   cluster_certificate_authority_data = module.eks.cluster_certificate_authority_data
 
-  depends_on = [module.eks]
+  depends_on = [module.eks] # Ensure EKS is created before Helm chart deployment
 }
 
-#############################################
-# IRSA for Cert Manager + Route53
-#############################################
+# IRSA for cert-manager Module Call
 module "irsa_cert_manager" {
   source = "./modules/irsa-cert-manager"
 
   cluster_name            = module.eks.cluster_name
   cluster_oidc_issuer_url = module.eks.cluster_oidc_issuer_url
-  domain                  = var.domain_name
+  domain                  = var.domain_name # e.g. "kapilkumaria.com"
 }
 
-#############################################
-# Cert Manager + Issuer + Certificate
-#############################################
+# Cert-Manager Module Call
 module "cert_manager" {
   source        = "./modules/cert-manager"
-  irsa_role_arn = module.irsa_cert_manager.cert_manager_irsa_role_arn
+  irsa_role_arn = module.irsa_cert_manager.cert_manager_irsa_role_arn # <-- Uses output from IRSA module
 
   depends_on = [
     module.irsa_cert_manager,
@@ -113,31 +104,30 @@ module "cert_manager" {
   ]
 }
 
+# ClusterIssuer Module Call
 module "clusterissuer" {
   source = "./modules/clusterissuer"
 
-  email           = "kapil.kumaria@gmail.com"
+  email           = "youremail@gmail.com"
   domain          = var.domain_name
   route53_zone_id = module.irsa_cert_manager.zone_id
   irsa_role_arn   = module.irsa_cert_manager.role_arn
 }
 
+# Certificate Module Call
 module "certificate" {
   source = "./modules/certificate"
 }
 
-#############################################
-# Prometheus Stack
-#############################################
+# Prometheus Module Call
 module "prometheus" {
   source    = "./modules/observability/prometheus"
   namespace = "monitoring"
   domain    = var.domain_name
 }
 
-#############################################
-# EBS CSI Driver
-#############################################
+# EBS CSI Module Call
+# EBS CSI (must come before any PVC-using apps)
 module "ebs_csi" {
   source = "./modules/observability/ebs-csi"
 
@@ -146,16 +136,12 @@ module "ebs_csi" {
   oidc_provider_arn = module.eks.oidc_provider_arn
 }
 
-#############################################
-# StorageClass / PVC infra
-#############################################
+# Storage Module Call
 module "storage" {
   source = "./modules/storage"
 }
 
-#############################################
-# Loki logging system
-#############################################
+# Loki Module Call
 module "loki" {
   source    = "./modules/observability/loki"
   namespace = "monitoring"
@@ -164,115 +150,92 @@ module "loki" {
   dependency_storage_class = module.storage
 }
 
-#############################################
-# Promtail Log Shipper
-#############################################
+# Promtail Module Call
 module "promtail" {
   source          = "./modules/observability/promtail"
   namespace       = "monitoring"
   dependency_loki = module.loki
 }
 
-#############################################
-# Kube State Metrics
-#############################################
+
+# Kube-State-Metrics Module Call
 module "kube_state_metrics" {
   source                = "./modules/observability/kube-state-metrics"
   namespace             = "monitoring"
   dependency_prometheus = module.prometheus
 }
 
-#############################################
-# Ingress NGINX (NLB)
-#############################################
+
+# Ingress-NGINX Module Call
 module "ingress_nginx" {
   source = "./modules/ingress-nginx"
 
   service_annotations = {
-    "service.beta.kubernetes.io/aws-load-balancer-type"   = "nlb"
+    "service.beta.kubernetes.io/aws-load-balancer-type"   = "alb"
     "service.beta.kubernetes.io/aws-load-balancer-scheme" = "internet-facing"
   }
 }
 
-#############################################
-# Alertmanager
-#############################################
+# Alertmanager Module Call
 module "alertmanager" {
   source    = "./modules/observability/alertmanager"
   namespace = "monitoring"
+  # domain = var.domain_name
 }
 
-#############################################
-# Placeholder root ingress
-#############################################
+# Root placeholder ingress (optional, until your app is ready)
 module "root_ingress" {
-  source = "./modules/root-ingress"
+  source = "./modules/root-ingress" # (if you split it) — or keep inline in root
   domain = var.domain_name
 }
 
-#############################################
-# Route53 DNS
-#############################################
+# Route53 Module Call
 module "route53" {
   source            = "./modules/route53"
-
-  hosted_zone_id    = module.irsa_cert_manager.zone_id
-  domain            = var.domain_name
-
+  hosted_zone_id    = module.irsa_cert_manager.zone_id # you already output zone id there
+  domain            = var.domain_name                  # "kapilkumaria.com"
   create_apex_alias = true
-  nlb_hosted_zone_id = module.ingress_nginx.lb_zone_id
-
-  additional_records = {
-    gcp = {
-      name = "gcp"
-      type = "A"
-      alias = {
-        name                   = module.ingress_nginx.lb_dns_name
-        zone_id                = module.ingress_nginx.lb_zone_id
-        evaluate_target_health = false
-      }
-    }
-  }
+  # Set after you fetch it (see command above). For first run you can leave "" to skip apex record.
+  nlb_hosted_zone_id = var.nlb_hosted_zone_id
 }
 
-#############################################
-# Alertmanager + Prometheus Ingress Routes
-#############################################
+
+
+
+
+
+# Alertmanager Ingress Module Call
 module "alertmanager_ingress" {
   source = "./modules/observability/alertmanager-ingress"
-  domain = var.domain_name
+  domain = var.domain_name # Make sure your main.tf uses var.domain_name
 }
 
+# Prometheus Ingress Module Call
 module "prometheus_ingress" {
   source = "./modules/observability/prometheus-ingress"
   domain = var.domain_name
 }
 
-#############################################
-# ArgoCD + Ingress
-#############################################
+# Argo CD Module Call
 module "argocd" {
-  source             = "./modules/argocd"
-  namespace          = "argocd"
-  helm_chart_version = "6.9.3"
-  domain             = var.domain_name
+  source              = "./modules/argocd"
+  namespace           = "argocd"
+  helm_chart_version  = "6.9.3"
+  domain = var.domain_name
 }
 
+# Argo CD Ingress Module Call
 module "argocd_ingress" {
-  source    = "./modules/argocd-ingress"
-  namespace = "argocd"
-  domain    = var.domain_name
-  depends_on = [module.argocd]
+  source      = "./modules/argocd-ingress"
+  namespace   = "argocd"
+  domain      = "kapilkumaria.com"
+  depends_on  = [module.argocd]
 }
 
-#############################################
-# Frontend-UI Ingress (main application)
-#############################################
 module "frontend_ui_ingress" {
   source       = "./modules/frontend-ui-ingress"
-  namespace    = "default"
-  subdomain    = "gcp"
-  domain       = var.domain_name
+  namespace    = "default"          # <--- UPDATE if needed
+  domain       = "gcp.kapilkumaria.com"
   service_name = "frontend-ui"
   service_port = 80
 

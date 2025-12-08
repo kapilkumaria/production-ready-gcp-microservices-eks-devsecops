@@ -31,3 +31,14 @@ variable "ingress_service_name" {
   type        = string
   default     = "ingress-nginx-controller"
 }
+
+variable "nlb_dns_name" {
+  type = string
+}
+
+variable "additional_records" {
+  type = map(object({
+    name = string
+  }))
+  default = {}
+}

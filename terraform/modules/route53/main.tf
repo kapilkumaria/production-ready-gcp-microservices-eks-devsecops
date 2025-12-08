@@ -58,6 +58,22 @@ resource "aws_route53_record" "nginx" {
   records = [local.lb_hostname]
 }
 
+# Create additional records such as gcp.kapilkumaria.com
+resource "aws_route53_record" "additional" {
+  for_each = var.additional_records
+
+  zone_id = var.hosted_zone_id
+  name    = "${each.value.name}.${var.domain}"
+  type    = each.value.type
+
+  alias {
+    name                   = each.value.alias.name
+    zone_id                = each.value.alias.zone_id
+    evaluate_target_health = each.value.alias.evaluate_target_health
+  }
+}
+
+
 # # Optional: apex ALIAS (recommended)
 # resource "aws_route53_record" "apex" {
 #   count   = var.create_apex_alias && var.nlb_hosted_zone_id != "" ? 1 : 0
