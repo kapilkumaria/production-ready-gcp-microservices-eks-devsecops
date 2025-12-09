@@ -56,7 +56,7 @@ apply_module "module.eks"
 apply_module "module.iam_oidc"
 apply_module "module.ebs_csi"
 apply_module "module.storage"
-apply_module "module.irsa_role"
+apply_module "module.irsa"
 apply_module "module.irsa_cert_manager"
 
 # Cert-manager + TLS
