@@ -1,20 +1,18 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
+# Load ALL base microservice manifests
 resources:
-  - ./adservice
-  - ./cartservice
-  - ./checkoutservice
-  - ./currencyservice
-  - ./emailservice
-  - ./frontend-ui
-  - ./paymentservice
-  - ./productcatalogservice
-  - ./recommendationservice
-  - ./shippingservice
-  - ./shoppingassistantservice
+  - ../../base
+
+# Patch ALL deployments to use the IRSA-enabled ServiceAccount
+patches:
+  - path: patch-use-ecr-sa.yaml
+    target:
+      kind: Deployment
 
 
+# Image overrides for ALL 13 microservices (DEV only)
 images:
   - name: adservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/adservice
@@ -59,6 +57,3 @@ images:
   - name: shoppingassistantservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shoppingassistantservice
     newTag: "661b424"
-
-patchesStrategicMerge:
-  - patch-use-ecr-sa.yaml
