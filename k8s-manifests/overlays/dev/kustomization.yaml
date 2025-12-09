@@ -1,61 +1,45 @@
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-
-resources:
-  - namespaces.yaml
-  - adservice
-  - cartservice
-  - checkoutservice
-  - currencyservice
-  - emailservice
-  - frontend-ui
-  - paymentservice
-  - productcatalogservice
-  - recommendationservice
-  - shippingservice
-  - shoppingassistantservice
-
 images:
   - name: adservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/adservice
-    newTag: "<IMAGE_TAG>"
+    newTag: b570c73
 
   - name: cartservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/cartservice
-    newTag: "<IMAGE_TAG>"
+    newTag: b570c73
 
   - name: checkoutservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/checkoutservice
-    newTag: "<IMAGE_TAG>"
+    newTag: b570c73
 
   - name: currencyservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/currencyservice
-    newTag: "<IMAGE_TAG>"
+    newTag: b570c73
 
   - name: emailservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/emailservice
-    newTag: "<IMAGE_TAG>"
+    newTag: b570c73
 
   - name: frontend-ui
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/frontend-ui
-    newTag: "<IMAGE_TAG>"
+    newTag: b570c73
 
   - name: paymentservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/paymentservice
-    newTag: "<IMAGE_TAG>"
+    newTag: b570c73
 
   - name: productcatalogservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/productcatalogservice
-    newTag: "<IMAGE_TAG>"
+    newTag: b570c73
 
   - name: recommendationservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/recommendationservice
-    newTag: "<IMAGE_TAG>"
+    newTag: b570c73
 
   - name: shippingservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shippingservice
-    newTag: "<IMAGE_TAG>"
+    newTag: b570c73
 
   - name: shoppingassistantservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shoppingassistantservice
-    newTag: "<IMAGE_TAG>"
+    newTag: b570c73
+
