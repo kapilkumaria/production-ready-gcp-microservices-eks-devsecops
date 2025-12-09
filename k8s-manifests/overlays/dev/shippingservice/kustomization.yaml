@@ -4,10 +4,12 @@ kind: Kustomization
 namespace: shippingservice
 
 resources:
-  - ../../base/shippingservice.yaml
+  - ../../../base/shippingservice.yaml
 
 patches:
-  - ../patch-use-ecr-sa.yaml
+  - path: ../patch-use-ecr-sa.yaml
+    target:
+      kind: Deployment
 
 images:
   - name: shippingservice

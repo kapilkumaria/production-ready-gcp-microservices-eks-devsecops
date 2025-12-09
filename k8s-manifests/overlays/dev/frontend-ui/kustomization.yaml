@@ -4,11 +4,13 @@ kind: Kustomization
 namespace: frontend-ui
 
 resources:
-  - ../../base/frontend-ui.yaml
-  - ingress.yaml
+  - ../../../base/frontend-ui.yaml
+  - ingress.yaml  # already inside this folder
 
 patches:
-  - ../patch-use-ecr-sa.yaml
+  - path: ../patch-use-ecr-sa.yaml
+    target:
+      kind: Deployment
 
 images:
   - name: frontend-ui

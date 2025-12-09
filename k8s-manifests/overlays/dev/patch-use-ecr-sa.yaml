@@ -1,8 +1,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: PLACEHOLDER
+  name: "*"
 spec:
   template:
     spec:
-      serviceAccountName: ecr-access
+      serviceAccountName: ecr-access-sa

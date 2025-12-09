@@ -4,10 +4,12 @@ kind: Kustomization
 namespace: shoppingassistantservice
 
 resources:
-  - ../../base/shoppingassistantservice.yaml
+  - ../../../base/shoppingassistantservice.yaml
 
 patches:
-  - ../patch-use-ecr-sa.yaml
+  - path: ../patch-use-ecr-sa.yaml
+    target:
+      kind: Deployment
 
 images:
   - name: shoppingassistantservice

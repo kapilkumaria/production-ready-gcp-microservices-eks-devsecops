@@ -4,10 +4,12 @@ kind: Kustomization
 namespace: currencyservice
 
 resources:
-  - ../../base/currencyservice.yaml
+  - ../../../base/currencyservice.yaml
 
 patches:
-  - ../patch-use-ecr-sa.yaml
+  - path: ../patch-use-ecr-sa.yaml
+    target:
+      kind: Deployment
 
 images:
   - name: currencyservice
