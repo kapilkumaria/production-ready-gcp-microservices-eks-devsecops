@@ -75,13 +75,7 @@ module "irsa" {
   oidc_provider_arn       = module.eks.oidc_provider_arn
   account_id              = data.aws_caller_identity.current.account_id
 
-  # REQUIRED PARAMETERS
-  role_name        = "prod-ready-eks-irsa-role"
-  namespace        = "default"
-  service_account  = "ecr-access"
-
-  # Allow microservices to pull images from ECR
-  attach_ecr_policy = true
+  depends_on = [module.eks]
 }
 
 #############################################
