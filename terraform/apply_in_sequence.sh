@@ -132,7 +132,7 @@ for i in {1..10}; do
   sleep 6
 done
 
-# ---------------------------------------------
+# --------------------------------------------
 # 7️⃣ Register GitHub Repo in ArgoCD
 # ---------------------------------------------
 echo "🔐 Registering GitHub repo with ArgoCD..."
