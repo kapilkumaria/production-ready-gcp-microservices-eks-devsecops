@@ -5,6 +5,7 @@ namespace: frontend-ui
 
 resources:
   - ../../../base/frontend-ui.yaml
+  - sa-ecr.yaml
   - ingress.yaml  # already inside this folder
 
 patches:

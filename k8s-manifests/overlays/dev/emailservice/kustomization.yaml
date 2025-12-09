@@ -5,6 +5,7 @@ namespace: emailservice
 
 resources:
   - ../../../base/emailservice.yaml
+  - sa-ecr.yaml
 
 patches:
   - path: ../patch-use-ecr-sa.yaml

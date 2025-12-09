@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ecr-access-sa
+  namespace: currencyservice   # <-- Kustomize will auto-inject this based on the overlay namespace
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::931058976119:role/prod-ready-eks-irsa-role
