@@ -1,6 +1,30 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# All microservices (each folder contains its own kustomization.yaml)
+resources:
+  - adservice
+  - cartservice
+  - checkoutservice
+  - currencyservice
+  - emailservice
+  - frontend-ui
+  - paymentservice
+  - productcatalogservice
+  - recommendationservice
+  - shippingservice
+  - shoppingassistantservice
+
+# Patch applied to ALL Deployments to use IRSA service account
+patches:
+  - patch-use-ecr-sa.yaml
+
+# GitHub Actions CI updates these dynamically after each image build
 images:
+  # These will be replaced automatically by CI pipeline
   - name: adservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/adservice
+<<<<<<< HEAD
     newTag: b2cf09d
 
   - name: cartservice
@@ -43,3 +67,46 @@ images:
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shoppingassistantservice
     newTag: b2cf09d
 
+=======
+    newTag: "<IMAGE_TAG>"
+
+  - name: cartservice
+    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/cartservice
+    newTag: "<IMAGE_TAG>"
+
+  - name: checkoutservice
+    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/checkoutservice
+    newTag: "<IMAGE_TAG>"
+
+  - name: currencyservice
+    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/currencyservice
+    newTag: "<IMAGE_TAG>"
+
+  - name: emailservice
+    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/emailservice
+    newTag: "<IMAGE_TAG>"
+
+  - name: frontend-ui
+    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/frontend-ui
+    newTag: "<IMAGE_TAG>"
+
+  - name: paymentservice
+    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/paymentservice
+    newTag: "<IMAGE_TAG>"
+
+  - name: productcatalogservice
+    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/productcatalogservice
+    newTag: "<IMAGE_TAG>"
+
+  - name: recommendationservice
+    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/recommendationservice
+    newTag: "<IMAGE_TAG>"
+
+  - name: shippingservice
+    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shippingservice
+    newTag: "<IMAGE_TAG>"
+
+  - name: shoppingassistantservice
+    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shoppingassistantservice
+    newTag: "<IMAGE_TAG>"
+>>>>>>> 395be372 (Fix overlays paths + kustomization structure + image tag placeholders)
