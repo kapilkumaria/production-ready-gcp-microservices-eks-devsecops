@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/kapilkumaria/production-ready-gcp-microservices-eks-devsecops.git
     targetRevision: HEAD
-    path: k8s-manifests/overlays/dev
+    path: k8s-manifests/overlays/dev/shoppingassistantservice
   destination:
     server: https://kubernetes.default.svc
     namespace: shoppingassistant
