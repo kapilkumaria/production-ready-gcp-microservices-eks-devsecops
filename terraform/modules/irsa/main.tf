@@ -7,8 +7,14 @@ module "irsa_role" {
 
   provider_url = replace(var.cluster_oidc_issuer_url, "https://", "")
 
-  oidc_fully_qualified_subjects = ["system:serviceaccount:*:*"]
+  # CORRECT: Replace wildcard with actual ServiceAccount
+  oidc_fully_qualified_subjects = [
+    "system:serviceaccount:default:ecr-access"
+  ]
 
-  role_policy_arns = []
-  number_of_role_policy_arns = 0
+  role_policy_arns = [
+    "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+  ]
+
+  number_of_role_policy_arns = 1
 }
