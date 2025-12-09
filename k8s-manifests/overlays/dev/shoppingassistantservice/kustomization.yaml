@@ -5,3 +5,11 @@ namespace: shoppingassistantservice
 
 resources:
   - ../../base/shoppingassistantservice.yaml
+
+patches:
+  - ../patch-use-ecr-sa.yaml
+
+images:
+  - name: shoppingassistantservice
+    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shoppingassistantservice
+    newTag: "<IMAGE_TAG>"

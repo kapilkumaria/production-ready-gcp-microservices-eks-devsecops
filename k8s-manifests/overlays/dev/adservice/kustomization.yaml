@@ -5,3 +5,11 @@ namespace: adservice
 
 resources:
   - ../../base/adservice.yaml
+
+patches:
+  - ../patch-use-ecr-sa.yaml
+
+images:
+  - name: adservice
+    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/adservice
+    newTag: "<IMAGE_TAG>"

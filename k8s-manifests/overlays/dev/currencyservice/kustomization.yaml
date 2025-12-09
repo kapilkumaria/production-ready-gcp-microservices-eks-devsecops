@@ -5,3 +5,11 @@ namespace: currencyservice
 
 resources:
   - ../../base/currencyservice.yaml
+
+patches:
+  - ../patch-use-ecr-sa.yaml
+
+images:
+  - name: currencyservice
+    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/currencyservice
+    newTag: "<IMAGE_TAG>"

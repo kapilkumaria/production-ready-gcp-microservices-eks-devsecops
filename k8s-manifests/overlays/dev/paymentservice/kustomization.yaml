@@ -5,3 +5,11 @@ namespace: paymentservice
 
 resources:
   - ../../base/paymentservice.yaml
+
+patches:
+  - ../patch-use-ecr-sa.yaml
+
+images:
+  - name: paymentservice
+    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/paymentservice
+    newTag: "<IMAGE_TAG>"

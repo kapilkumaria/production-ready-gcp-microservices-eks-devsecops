@@ -5,3 +5,11 @@ namespace: checkoutservice
 
 resources:
   - ../../base/checkoutservice.yaml
+
+patches:
+  - ../patch-use-ecr-sa.yaml
+
+images:
+  - name: checkoutservice
+    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/checkoutservice
+    newTag: "<IMAGE_TAG>"

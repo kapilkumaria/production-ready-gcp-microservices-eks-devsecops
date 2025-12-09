@@ -5,3 +5,11 @@ namespace: productcatalogservice
 
 resources:
   - ../../base/productcatalogservice.yaml
+
+patches:
+  - ../patch-use-ecr-sa.yaml
+
+images:
+  - name: productcatalogservice
+    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/productcatalogservice
+    newTag: "<IMAGE_TAG>"

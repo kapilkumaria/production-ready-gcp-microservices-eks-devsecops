@@ -5,3 +5,11 @@ namespace: recommendationservice
 
 resources:
   - ../../base/recommendationservice.yaml
+
+patches:
+  - ../patch-use-ecr-sa.yaml
+
+images:
+  - name: recommendationservice
+    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/recommendationservice
+    newTag: "<IMAGE_TAG>"
