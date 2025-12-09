@@ -65,7 +65,7 @@ module "iam_oidc" {
 data "aws_caller_identity" "current" {}
 
 #############################################
-# IRSA for workloads
+# IRSA for workloads (ECR Pull + Microservices)
 #############################################
 module "irsa" {
   source = "./modules/irsa"
@@ -74,6 +74,14 @@ module "irsa" {
   cluster_oidc_issuer_url = module.eks.cluster_oidc_issuer_url
   oidc_provider_arn       = module.eks.oidc_provider_arn
   account_id              = data.aws_caller_identity.current.account_id
+
+  # REQUIRED PARAMETERS
+  role_name        = "prod-ready-eks-irsa-role"
+  namespace        = "default"
+  service_account  = "ecr-access"
+
+  # Allow microservices to pull images from ECR
+  attach_ecr_policy = true
 }
 
 #############################################
