@@ -1,7 +1,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: "*"
+  name: not-used
+  namespace: not-used
 spec:
   template:
     spec:

@@ -1,20 +1,24 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: kubernetes-dashboard
+  name: dashboard
   namespace: argocd
 spec:
   project: default
+
   source:
     repoURL: https://github.com/kapilkumaria/production-ready-gcp-microservices-eks-devsecops.git
     targetRevision: HEAD
-    path: k8s-manifests/dashboard
+    path: k8s-manifests/dashboard         # <── Dashboard has its OWN folder
+
   destination:
     server: https://kubernetes.default.svc
-    namespace: kubernetes-dashboard
+    namespace: dashboard                  # <── Dashboard namespace
+
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
+
     syncOptions:
       - CreateNamespace=true
