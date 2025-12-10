@@ -85,3 +85,12 @@ metadata:
   namespace: shoppingassistantservice
   annotations:
     eks.amazonaws.com/role-arn: arn:aws:iam::931058976119:role/prod-ready-eks-irsa-role
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ecr-access-sa
+  namespace: frontend-gateway
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::931058976119:role/prod-ready-eks-irsa-role
+---
