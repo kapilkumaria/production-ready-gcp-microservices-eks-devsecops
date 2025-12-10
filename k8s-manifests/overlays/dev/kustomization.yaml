@@ -2,17 +2,17 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - k8s-manifests/base/adservice.yaml
-  - k8s-manifests/base/cartservice.yaml
-  - k8s-manifests/base/checkoutservice.yaml
-  - k8s-manifests/base/currencyservice.yaml
-  - k8s-manifests/base/emailservice.yaml
-  - k8s-manifests/base/frontend-ui.yaml
-  - k8s-manifests/base/paymentservice.yaml
-  - k8s-manifests/base/productcatalogservice.yaml
-  - k8s-manifests/base/recommendationservice.yaml
-  - k8s-manifests/base/shippingservice.yaml
-  - k8s-manifests/base/shoppingassistantservice.yaml
+  - ../base/adservice.yaml
+  - ../base/cartservice.yaml
+  - ../base/checkoutservice.yaml
+  - ../base/currencyservice.yaml
+  - ../base/emailservice.yaml
+  - ../base/frontend-ui.yaml
+  - ../base/paymentservice.yaml
+  - ../base/productcatalogservice.yaml
+  - ../base/recommendationservice.yaml
+  - ../base/shippingservice.yaml
+  - ../base/shoppingassistantservice.yaml
   - namespaces.yaml
   - sa-ecr.yaml
 
