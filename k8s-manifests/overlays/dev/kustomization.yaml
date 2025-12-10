@@ -43,3 +43,5 @@ images:
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shoppingassistantservice
     newTag: f1b06cb
 
+# Images overriden by GitHub Actions
+images: []
