@@ -13,7 +13,6 @@ patches:
       version: v1
       kind: Deployment
 
-
 images:
   - name: adservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/adservice
@@ -58,3 +57,8 @@ images:
   - name: shoppingassistantservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shoppingassistantservice
     newTag: ed25054
+
+  - name: frontend-gateway
+    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/frontend-gateway
+    newTag: ed25054
+
