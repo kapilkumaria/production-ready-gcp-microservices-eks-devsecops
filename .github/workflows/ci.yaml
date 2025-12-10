@@ -32,25 +32,45 @@ jobs:
     steps:
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4     
 
       ############################################################
       # DETERMINE DOCKERFILE PATH
       ############################################################
       - name: Determine Dockerfile Path
         id: pathcheck
-        run: |        
+        run: |
           SERVICE="${{ matrix.service }}"
+
+          # Default paths
           DOCKERFILE="src/$SERVICE/Dockerfile"
           CONTEXT="src/$SERVICE"
 
+          ############################################################
+          # Special Case: cartservice (Dockerfile inside nested folder)
+          ############################################################
           if [ "$SERVICE" = "cartservice" ]; then
             DOCKERFILE="src/cartservice/src/Dockerfile"
             CONTEXT="src/cartservice/src"
           fi
 
-          # No special skip logic — gateway now HAS a Dockerfile
+          ############################################################
+          # Special Case: frontend-gateway 
+          #   → MUST use repo root as context (.)
+          #   → Dockerfile is located inside src/frontend-gateway/
+          ############################################################
+          if [ "$SERVICE" = "frontend-gateway" ]; then
+            DOCKERFILE="src/frontend-gateway/Dockerfile"
+            CONTEXT="."
+            echo "dockerfile=$DOCKERFILE" >> $GITHUB_OUTPUT
+            echo "context=$CONTEXT" >> $GITHUB_OUTPUT
+            echo "found=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
 
+          ############################################################
+          # Default: check if the Dockerfile exists
+          ############################################################
           if [ -f "$DOCKERFILE" ]; then
             echo "dockerfile=$DOCKERFILE" >> $GITHUB_OUTPUT
             echo "context=$CONTEXT" >> $GITHUB_OUTPUT
@@ -58,7 +78,6 @@ jobs:
           else
             echo "found=false" >> $GITHUB_OUTPUT
           fi
-
 
       ############################################################
       # DOCKER BUILD
