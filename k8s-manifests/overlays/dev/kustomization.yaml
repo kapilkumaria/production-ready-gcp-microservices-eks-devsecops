@@ -1,64 +1,49 @@
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-
-resources:
-  - github.com/kapilkumaria/production-ready-gcp-microservices-eks-devsecops/k8s-manifests/base?ref=main
-  - frontend-gateway.yaml
-  - namespaces.yaml
-  - sa-ecr.yaml
-
-patches:
-  - path: patch-use-ecr-sa.yaml
-    target:
-      group: apps
-      version: v1
-      kind: Deployment
-
 images:
   - name: adservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/adservice
-    newTag: 764f46d
+    newTag: 4fdf00f
 
   - name: cartservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/cartservice
-    newTag: 764f46d
+    newTag: 4fdf00f
 
   - name: checkoutservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/checkoutservice
-    newTag: 764f46d
+    newTag: 4fdf00f
 
   - name: currencyservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/currencyservice
-    newTag: 764f46d
+    newTag: 4fdf00f
 
   - name: emailservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/emailservice
-    newTag: 764f46d
-
-  - name: frontend-ui
-    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/frontend-ui
-    newTag: 764f46d
+    newTag: 4fdf00f
 
   - name: frontend-gateway
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/frontend-gateway
-    newTag: 872ca19
+    newTag: 4fdf00f
+
+  - name: frontend-ui
+    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/frontend-ui
+    newTag: 4fdf00f
 
   - name: paymentservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/paymentservice
-    newTag: 764f46d
+    newTag: 4fdf00f
 
   - name: productcatalogservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/productcatalogservice
-    newTag: 764f46d
+    newTag: 4fdf00f
 
   - name: recommendationservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/recommendationservice
-    newTag: 764f46d
+    newTag: 4fdf00f
 
   - name: shippingservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shippingservice
-    newTag: 764f46d
+    newTag: 4fdf00f
 
   - name: shoppingassistantservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shoppingassistantservice
-    newTag: 764f46d
+    newTag: 4fdf00f
+
