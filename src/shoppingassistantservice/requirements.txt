@@ -4,6 +4,7 @@
 #
 #    pip-compile --cert=None --client-cert=None --index-url=None --output-file=requirements.txt --pip-args=None requirements.in
 #
+aiohttp>=3.9,<4.0
 aiofiles==24.1.0
 annotated-types==0.7.0
 anyio==4.10.0
