@@ -17,11 +17,11 @@ RUN npm run build
 # ------------------------------------------------------------
 FROM nginx:alpine
 
-# Remove default nginx config
+# Remove default nginx configs
 RUN rm /etc/nginx/conf.d/default.conf
 
 # Copy our custom nginx config (must exist at project root)
-COPY src/frontend-ui/nginx.conf /etc/nginx/nginx.conf
+COPY nginx.conf /etc/nginx/nginx.conf
 
 
 # Copy built React app to nginx html directory
