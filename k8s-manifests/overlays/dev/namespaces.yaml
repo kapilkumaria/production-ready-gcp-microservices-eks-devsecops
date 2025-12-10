@@ -2,63 +2,75 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: adservice
-
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: cartservice
-
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: checkoutservice
-
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: currencyservice
-
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: emailservice
-
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: frontend-ui
-
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: paymentservice
-
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: productcatalogservice
-
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: recommendationservice
-
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: shippingservice
-
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: shoppingassistantservice
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
