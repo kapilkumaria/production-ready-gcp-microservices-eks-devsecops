@@ -1,4 +1,5 @@
-FROM --platform=$BUILDPLATFORM python:3.12.8-slim AS base
+FROM --platform=$BUILDPLATFORM python:3.11-slim AS base
+
 
 # Install libpq + system deps so psycopg works
 RUN apt-get update && apt-get install -y --no-install-recommends \
