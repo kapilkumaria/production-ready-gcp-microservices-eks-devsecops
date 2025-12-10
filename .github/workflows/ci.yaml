@@ -39,7 +39,7 @@ jobs:
       ############################################################
       - name: Determine Dockerfile Path
         id: pathcheck
-        run: |
+        run: |        
           SERVICE="${{ matrix.service }}"
           DOCKERFILE="src/$SERVICE/Dockerfile"
           CONTEXT="src/$SERVICE"
@@ -49,11 +49,7 @@ jobs:
             CONTEXT="src/cartservice/src"
           fi
 
-          # frontend-gateway has no Dockerfile
-          if [ "$SERVICE" = "frontend-gateway" ]; then
-            echo "found=false" >> $GITHUB_OUTPUT
-            exit 0
-          fi
+          # No special skip logic — gateway now HAS a Dockerfile
 
           if [ -f "$DOCKERFILE" ]; then
             echo "dockerfile=$DOCKERFILE" >> $GITHUB_OUTPUT
@@ -62,6 +58,7 @@ jobs:
           else
             echo "found=false" >> $GITHUB_OUTPUT
           fi
+
 
       ############################################################
       # DOCKER BUILD
