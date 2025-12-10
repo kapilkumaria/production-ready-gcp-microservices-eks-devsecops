@@ -1,49 +1,49 @@
 images:
   - name: adservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/adservice
-    newTag: ce57c08
+    newTag: 1a55edb
 
   - name: cartservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/cartservice
-    newTag: ce57c08
+    newTag: 1a55edb
 
   - name: checkoutservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/checkoutservice
-    newTag: ce57c08
+    newTag: 1a55edb
 
   - name: currencyservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/currencyservice
-    newTag: ce57c08
+    newTag: 1a55edb
 
   - name: emailservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/emailservice
-    newTag: ce57c08
+    newTag: 1a55edb
 
   - name: frontend-gateway
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/frontend-gateway
-    newTag: ce57c08
+    newTag: 1a55edb
 
   - name: frontend-ui
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/frontend-ui
-    newTag: ce57c08
+    newTag: 1a55edb
 
   - name: paymentservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/paymentservice
-    newTag: ce57c08
+    newTag: 1a55edb
 
   - name: productcatalogservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/productcatalogservice
-    newTag: ce57c08
+    newTag: 1a55edb
 
   - name: recommendationservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/recommendationservice
-    newTag: ce57c08
+    newTag: 1a55edb
 
   - name: shippingservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shippingservice
-    newTag: ce57c08
+    newTag: 1a55edb
 
   - name: shoppingassistantservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shoppingassistantservice
-    newTag: ce57c08
+    newTag: 1a55edb
 
