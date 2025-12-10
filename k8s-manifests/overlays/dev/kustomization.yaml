@@ -1,3 +1,38 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# ==================================================
+# 1. BASE MANIFESTS (ABSOLUTE REPO-RELATIVE PATHS)
+# ==================================================
+resources:
+  - ../../base/adservice.yaml
+  - ../../base/cartservice.yaml
+  - ../../base/checkoutservice.yaml
+  - ../../base/currencyservice.yaml
+  - ../../base/emailservice.yaml
+  - ../../base/frontend-ui.yaml
+  - ../../base/paymentservice.yaml
+  - ../../base/productcatalogservice.yaml
+  - ../../base/recommendationservice.yaml
+  - ../../base/shippingservice.yaml
+  - ../../base/shoppingassistantservice.yaml
+  - namespaces.yaml
+  - sa-ecr.yaml
+
+# ==================================================
+# 2. PATCHES (SERVICEACCOUNT FOR ALL DEPLOYMENTS)
+# ==================================================
+patchesJson6902:
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: ""   # match ALL Deployments
+    path: patch-use-ecr-sa.yaml
+
+# ==================================================
+# 3. IMAGE OVERRIDES (GITHUB ACTIONS WILL MODIFY)
+# ==================================================
 images:
   - name: adservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/adservice
@@ -41,5 +76,9 @@ images:
 
   - name: shoppingassistantservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shoppingassistantservice
+<<<<<<< Updated upstream
     newTag: ed25054
 
+=======
+    newTag: f1b06cb
+>>>>>>> Stashed changes

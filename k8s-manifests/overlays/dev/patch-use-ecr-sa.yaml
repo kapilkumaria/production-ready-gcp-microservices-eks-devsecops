@@ -1,9 +1,3 @@
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: not-used
-  namespace: not-used
-spec:
-  template:
-    spec:
-      serviceAccountName: ecr-access-sa
+- op: replace
+  path: /spec/template/spec/serviceAccountName
+  value: ecr-access-sa
