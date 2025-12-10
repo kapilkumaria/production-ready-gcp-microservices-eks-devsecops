@@ -6,7 +6,7 @@ WORKDIR /app
 COPY src/frontend-gateway/package*.json ./
 RUN npm install
 
-# Copy gateway source
+# Copy gateway source 
 COPY src/frontend-gateway/src ./src
 
 # Copy protos from repo root
