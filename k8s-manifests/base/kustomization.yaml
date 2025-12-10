@@ -13,3 +13,4 @@ resources:
   - recommendationservice.yaml
   - shippingservice.yaml
   - shoppingassistantservice.yaml
+  - frontend-gateway.yaml
