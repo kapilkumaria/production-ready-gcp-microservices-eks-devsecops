@@ -18,7 +18,7 @@ spec:
       serviceAccountName: ecr-access-sa
       containers:
       - name: frontend-gateway
-        image: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/frontend-gateway:latest
+        image: frontend-gateway
         ports:
         - containerPort: 8081
         env:
