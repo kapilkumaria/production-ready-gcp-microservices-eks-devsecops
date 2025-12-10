@@ -125,8 +125,7 @@ services:
   # ---------------------------------------------------------
   frontend-gateway:
     build:
-      context: .
-      dockerfile: Dockerfile.gateway
+      context: ./src/frontend-gateway      
     container_name: frontend-gateway
     depends_on:
       - productcatalogservice
