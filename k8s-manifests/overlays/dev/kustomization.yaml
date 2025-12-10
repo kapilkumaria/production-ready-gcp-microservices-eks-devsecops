@@ -1,18 +1,48 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
+# resources:
+#   - ../base/adservice.yaml
+#   - ../base/cartservice.yaml
+#   - ../base/checkoutservice.yaml
+#   - ../base/currencyservice.yaml
+#   - ../base/emailservice.yaml
+#   - ../base/frontend-ui.yaml
+#   - ../base/paymentservice.yaml
+#   - ../base/productcatalogservice.yaml
+#   - ../base/recommendationservice.yaml
+#   - ../base/shippingservice.yaml
+#   - ../base/shoppingassistantservice.yaml
+#   - namespaces.yaml
+#   - sa-ecr.yaml
+
+# resources:
+#   - ../../base/adservice.yaml
+#   - ../../base/cartservice.yaml
+#   - ../../base/checkoutservice.yaml
+#   - ../../base/currencyservice.yaml
+#   - ../../base/emailservice.yaml
+#   - ../../base/frontend-ui.yaml
+#   - ../../base/paymentservice.yaml
+#   - ../../base/productcatalogservice.yaml
+#   - ../../base/recommendationservice.yaml
+#   - ../../base/shippingservice.yaml
+#   - ../../base/shoppingassistantservice.yaml
+#   - namespaces.yaml
+#   - sa-ecr.yaml
+
 resources:
-  - ../base/adservice.yaml
-  - ../base/cartservice.yaml
-  - ../base/checkoutservice.yaml
-  - ../base/currencyservice.yaml
-  - ../base/emailservice.yaml
-  - ../base/frontend-ui.yaml
-  - ../base/paymentservice.yaml
-  - ../base/productcatalogservice.yaml
-  - ../base/recommendationservice.yaml
-  - ../base/shippingservice.yaml
-  - ../base/shoppingassistantservice.yaml
+  - ../../../base/adservice.yaml
+  - ../../../base/cartservice.yaml
+  - ../../../base/checkoutservice.yaml
+  - ../../../base/currencyservice.yaml
+  - ../../../base/emailservice.yaml
+  - ../../../base/frontend-ui.yaml
+  - ../../../base/paymentservice.yaml
+  - ../../../base/productcatalogservice.yaml
+  - ../../../base/recommendationservice.yaml
+  - ../../../base/shippingservice.yaml
+  - ../../../base/shoppingassistantservice.yaml
   - namespaces.yaml
   - sa-ecr.yaml
 
