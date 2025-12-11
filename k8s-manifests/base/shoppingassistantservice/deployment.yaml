@@ -1,3 +1,26 @@
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: shoppingassistantservice
+#   namespace: shoppingassistantservice
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: shoppingassistantservice
+#   template:
+#     metadata:
+#       labels:
+#         app: shoppingassistantservice
+#     spec:
+#       serviceAccountName: ecr-access-sa
+#       containers:
+#         - name: shoppingassistantservice
+#           image: shoppingassistantservice:latest
+#           ports:
+#             - containerPort: 8080
+
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -19,3 +42,6 @@ spec:
           image: shoppingassistantservice:latest
           ports:
             - containerPort: 8080
+          env:
+            - name: PROJECT_ID
+              value: "shoppingassistant-project"
