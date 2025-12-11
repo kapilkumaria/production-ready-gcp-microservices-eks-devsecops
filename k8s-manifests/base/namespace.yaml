@@ -24,12 +24,7 @@ items:
   - apiVersion: v1
     kind: Namespace
     metadata:
-      name: emailservice
-
-  - apiVersion: v1
-    kind: Namespace
-    metadata:
-      name: frontend-gateway
+      name: emailservice 
   
   - apiVersion: v1
     kind: Namespace
