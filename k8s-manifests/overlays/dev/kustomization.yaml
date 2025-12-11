@@ -4,42 +4,41 @@ metadata:
   namespace: default
 resources:
   - ../../base
-  
 images:
   # GitHub Actions will overwrite this entire section automatically
   - name: adservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/adservice
-    newTag: "f58d1ee"
+    newTag: "8eddd47"
   - name: cartservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/cartservice
-    newTag: "f58d1ee"
+    newTag: "8eddd47"
   - name: checkoutservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/checkoutservice
-    newTag: "f58d1ee"
+    newTag: "8eddd47"
   - name: currencyservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/currencyservice
-    newTag: "f58d1ee"
+    newTag: "8eddd47"
   - name: emailservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/emailservice
-    newTag: "f58d1ee"
+    newTag: "8eddd47"
   - name: frontend-gateway
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/frontend-gateway
-    newTag: "f58d1ee"
+    newTag: "8eddd47"
   - name: frontend-ui
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/frontend-ui
-    newTag: "f58d1ee"
+    newTag: "8eddd47"
   - name: paymentservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/paymentservice
-    newTag: "f58d1ee"
+    newTag: "8eddd47"
   - name: productcatalogservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/productcatalogservice
-    newTag: "f58d1ee"
+    newTag: "8eddd47"
   - name: recommendationservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/recommendationservice
-    newTag: "f58d1ee"
+    newTag: "8eddd47"
   - name: shippingservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shippingservice
-    newTag: "f58d1ee"
+    newTag: "8eddd47"
   - name: shoppingassistantservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shoppingassistantservice
-    newTag: "f58d1ee"
+    newTag: "8eddd47"
