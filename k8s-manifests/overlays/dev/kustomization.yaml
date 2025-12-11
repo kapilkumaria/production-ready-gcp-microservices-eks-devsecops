@@ -8,37 +8,37 @@ images:
   # GitHub Actions will overwrite this entire section automatically
   - name: adservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/adservice
-    newTag: "a3bfe7f"
+    newTag: "d70d213"
   - name: cartservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/cartservice
-    newTag: "a3bfe7f"
+    newTag: "d70d213"
   - name: checkoutservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/checkoutservice
-    newTag: "a3bfe7f"
+    newTag: "d70d213"
   - name: currencyservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/currencyservice
-    newTag: "a3bfe7f"
+    newTag: "d70d213"
   - name: emailservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/emailservice
-    newTag: "a3bfe7f"
+    newTag: "d70d213"
   - name: frontend-gateway
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/frontend-gateway
-    newTag: "a3bfe7f"
+    newTag: "d70d213"
   - name: frontend-ui
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/frontend-ui
-    newTag: "a3bfe7f"
+    newTag: "d70d213"
   - name: paymentservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/paymentservice
-    newTag: "a3bfe7f"
+    newTag: "d70d213"
   - name: productcatalogservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/productcatalogservice
-    newTag: "a3bfe7f"
+    newTag: "d70d213"
   - name: recommendationservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/recommendationservice
-    newTag: "a3bfe7f"
+    newTag: "d70d213"
   - name: shippingservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shippingservice
-    newTag: "a3bfe7f"
+    newTag: "d70d213"
   - name: shoppingassistantservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shoppingassistantservice
-    newTag: "a3bfe7f"
+    newTag: "d70d213"
