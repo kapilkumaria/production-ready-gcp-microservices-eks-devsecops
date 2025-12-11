@@ -21,17 +21,27 @@ spec:
           image: frontend-gateway:latest
           imagePullPolicy: Always
           ports:
-            - containerPort: 8081
-
+            - containerPort: 8081        
           
-          args:
-            - "--product_catalog_service_addr=productcatalogservice.productcatalogservice.svc.cluster.local:3550"
-            - "--cart_service_addr=cartservice.cartservice.svc.cluster.local:7070"
-            - "--currency_service_addr=currencyservice.currencyservice.svc.cluster.local:7000"
-            - "--checkout_service_addr=checkoutservice.checkoutservice.svc.cluster.local:5050"
-            - "--recommendation_service_addr=recommendationservice.recommendationservice.svc.cluster.local:8080"
-            - "--shipping_service_addr=shippingservice.shippingservice.svc.cluster.local:50051"
-            - "--email_service_addr=emailservice.emailservice.svc.cluster.local:8080"
-            - "--ad_service_addr=adservice.adservice.svc.cluster.local:9555"
-            - "--shoppingassistant_service_addr=shoppingassistantservice.shoppingassistantservice.svc.cluster.local:8080"
+
+          env:
+            - name: PRODUCTCATALOG_SERVICE_ADDR
+              value: productcatalogservice.productcatalogservice.svc.cluster.local:3550
+            - name: CART_SERVICE_ADDR
+              value: cartservice.cartservice.svc.cluster.local:7070
+            - name: CURRENCY_SERVICE_ADDR
+              value: currencyservice.currencyservice.svc.cluster.local:7000
+            - name: CHECKOUT_SERVICE_ADDR
+              value: checkoutservice.checkoutservice.svc.cluster.local:5050
+            - name: RECOMMENDATION_SERVICE_ADDR
+              value: recommendationservice.recommendationservice.svc.cluster.local:8080
+            - name: SHIPPING_SERVICE_ADDR
+              value: shippingservice.shippingservice.svc.cluster.local:50051
+            - name: EMAIL_SERVICE_ADDR
+              value: emailservice.emailservice.svc.cluster.local:8080
+            - name: AD_SERVICE_ADDR
+              value: adservice.adservice.svc.cluster.local:9555
+            - name: SHOPPINGASSISTANT_SERVICE_ADDR
+              value: shoppingassistantservice.shoppingassistantservice.svc.cluster.local:8080
+
 
