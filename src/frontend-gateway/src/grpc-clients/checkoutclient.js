@@ -20,18 +20,18 @@
 //   grpc.credentials.createInsecure()
 // );
 
-import loadProto from "./loadProto.js";
 import grpc from "@grpc/grpc-js";
+import loadProto from "./loadProto.js";
+import dotenv from "dotenv";
+dotenv.config();
 
-const CHECKOUT_SERVICE_ADDR =
-  process.env.CHECKOUT_SERVICE_ADDR ||
+const proto = loadProto("checkout_service.proto");
+
+const CHECKOUT_ADDR =
+  process.env.CHECKOUT_SERVICE_ADDR ??
   "checkoutservice.checkoutservice.svc.cluster.local:5050";
 
-const proto = loadProto("checkoutservice.proto");
-
-const client = new proto.CheckoutService(
-  CHECKOUT_SERVICE_ADDR,
+export const checkoutClient = new proto.CheckoutService(
+  CHECKOUT_ADDR,
   grpc.credentials.createInsecure()
 );
-
-export default client;

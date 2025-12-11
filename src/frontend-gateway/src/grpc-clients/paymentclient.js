@@ -21,18 +21,18 @@
 // );
 
 
-import loadProto from "./loadProto.js";
 import grpc from "@grpc/grpc-js";
+import loadProto from "./loadProto.js";
+import dotenv from "dotenv";
+dotenv.config();
 
-const PAYMENT_SERVICE_ADDR =
-  process.env.PAYMENT_SERVICE_ADDR ||
+const proto = loadProto("payment_service.proto");
+
+const PAYMENT_ADDR =
+  process.env.PAYMENT_SERVICE_ADDR ??
   "paymentservice.paymentservice.svc.cluster.local:50051";
 
-const proto = loadProto("paymentservice.proto");
-
-const client = new proto.PaymentService(
-  PAYMENT_SERVICE_ADDR,
+export const paymentClient = new proto.PaymentService(
+  PAYMENT_ADDR,
   grpc.credentials.createInsecure()
 );
-
-export default client;

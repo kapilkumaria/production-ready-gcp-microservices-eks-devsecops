@@ -21,18 +21,18 @@
 // );
 
 
-import loadProto from "./loadProto.js";
 import grpc from "@grpc/grpc-js";
+import loadProto from "./loadProto.js";
+import dotenv from "dotenv";
+dotenv.config();
 
-const RECOMMENDATION_SERVICE_ADDR =
-  process.env.RECOMMENDATION_SERVICE_ADDR ||
+const proto = loadProto("recommendation_service.proto");
+
+const RECOMMEND_ADDR =
+  process.env.RECOMMENDATION_SERVICE_ADDR ??
   "recommendationservice.recommendationservice.svc.cluster.local:8080";
 
-const proto = loadProto("recommendationservice.proto");
-
-const client = new proto.RecommendationService(
-  RECOMMENDATION_SERVICE_ADDR,
+export const recommendationClient = new proto.RecommendationService(
+  RECOMMEND_ADDR,
   grpc.credentials.createInsecure()
 );
-
-export default client;

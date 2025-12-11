@@ -21,18 +21,18 @@
 // );
 
 
-import loadProto from "./loadProto.js";
 import grpc from "@grpc/grpc-js";
+import loadProto from "./loadProto.js";
+import dotenv from "dotenv";
+dotenv.config();
 
-const AD_SERVICE_ADDR =
-  process.env.AD_SERVICE_ADDR ||
+const proto = loadProto("ad_service.proto");
+
+const AD_ADDR =
+  process.env.ADS_SERVICE_ADDR ??
   "adservice.adservice.svc.cluster.local:9555";
 
-const proto = loadProto("adservice.proto");
-
-const client = new proto.AdService(
-  AD_SERVICE_ADDR,
+export const adClient = new proto.AdService(
+  AD_ADDR,
   grpc.credentials.createInsecure()
 );
-
-export default client;

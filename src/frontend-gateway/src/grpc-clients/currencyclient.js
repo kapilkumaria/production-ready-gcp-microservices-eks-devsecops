@@ -21,18 +21,18 @@
 // );
 
 
-import loadProto from "./loadProto.js";
 import grpc from "@grpc/grpc-js";
+import loadProto from "./loadProto.js";
+import dotenv from "dotenv";
+dotenv.config();
 
-const CURRENCY_SERVICE_ADDR =
-  process.env.CURRENCY_SERVICE_ADDR ||
+const proto = loadProto("currency_service.proto");
+
+const CURRENCY_ADDR =
+  process.env.CURRENCY_SERVICE_ADDR ??
   "currencyservice.currencyservice.svc.cluster.local:7000";
 
-const proto = loadProto("currencyservice.proto");
-
-const client = new proto.CurrencyService(
-  CURRENCY_SERVICE_ADDR,
+export const currencyClient = new proto.CurrencyService(
+  CURRENCY_ADDR,
   grpc.credentials.createInsecure()
 );
-
-export default client;

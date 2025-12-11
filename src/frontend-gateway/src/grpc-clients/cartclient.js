@@ -20,18 +20,18 @@
 //   grpc.credentials.createInsecure()
 // );
 
-import loadProto from "./loadProto.js";
 import grpc from "@grpc/grpc-js";
+import loadProto from "./loadProto.js";
+import dotenv from "dotenv";
+dotenv.config();
 
-const CART_SERVICE_ADDR =
-  process.env.CART_SERVICE_ADDR ||
+const proto = loadProto("cart_service.proto");
+
+const CART_ADDR =
+  process.env.CART_SERVICE_ADDR ??
   "cartservice.cartservice.svc.cluster.local:7070";
 
-const proto = loadProto("cartservice.proto");
-
-const client = new proto.CartService(
-  CART_SERVICE_ADDR,
+export const cartClient = new proto.CartService(
+  CART_ADDR,
   grpc.credentials.createInsecure()
 );
-
-export default client;

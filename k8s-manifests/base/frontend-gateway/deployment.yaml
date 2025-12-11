@@ -16,13 +16,16 @@ spec:
         app: frontend-gateway
     spec:
       serviceAccountName: ecr-access-gateway-sa
+
       containers:
         - name: frontend-gateway
-          image: frontend-gateway:latest
-          imagePullPolicy: Always
-          ports:
-            - containerPort: 8081        
+
           
+          image: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/frontend-gateway
+          imagePullPolicy: Always
+
+          ports:
+            - containerPort: 8081
 
           env:
             - name: PRODUCTCATALOG_SERVICE_ADDR
@@ -43,5 +46,3 @@ spec:
               value: adservice.adservice.svc.cluster.local:9555
             - name: SHOPPINGASSISTANT_SERVICE_ADDR
               value: shoppingassistantservice.shoppingassistantservice.svc.cluster.local:8080
-
-

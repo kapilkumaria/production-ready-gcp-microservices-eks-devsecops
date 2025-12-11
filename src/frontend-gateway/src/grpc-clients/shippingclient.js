@@ -20,19 +20,19 @@
 //   grpc.credentials.createInsecure()
 // );
 
-
-import loadProto from "./loadProto.js";
 import grpc from "@grpc/grpc-js";
+import loadProto from "./loadProto.js";
+import dotenv from "dotenv";
+dotenv.config();
 
-const SHIPPING_SERVICE_ADDR =
-  process.env.SHIPPING_SERVICE_ADDR ||
+const proto = loadProto("shipping_service.proto");
+
+const SHIPPING_ADDR =
+  process.env.SHIPPING_SERVICE_ADDR ??
   "shippingservice.shippingservice.svc.cluster.local:50051";
 
-const proto = loadProto("shippingservice.proto");
-
-const client = new proto.ShippingService(
-  SHIPPING_SERVICE_ADDR,
+export const shippingClient = new proto.ShippingService(
+  SHIPPING_ADDR,
   grpc.credentials.createInsecure()
 );
 
-export default client;

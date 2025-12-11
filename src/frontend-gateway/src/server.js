@@ -1,80 +1,48 @@
-// import express from "express";
-// import cors from "cors";
-// import cookieParser from "cookie-parser";
-// import userMiddleware from "./middleware/user.js";
-
-// // Routes
-// import productRoutes from "./routes/product.js";
-// import cartRoutes from "./routes/cart.js";
-// import imageRoutes from "./routes/images.js";
-// import checkoutRoutes from "./routes/checkout.js";
-// import currencyRoutes from "./routes/currency.js";
-// import paymentRoutes from "./routes/payment.js";
-// import shippingRoutes from "./routes/shipping.js";
-// import adRoutes from "./routes/ads.js";
-
-// const app = express();
-
-// // FIX: allow cookies across nginx → gateway
-// app.use(
-//   cors({
-//     origin: true,
-//     credentials: true,
-//   })
-// );
-
-// app.use(cookieParser());
-// app.use(userMiddleware);     // do NOT call as function
-// app.use(express.json());
-
-// // REST routes
-// app.use("/api/products", productRoutes);
-// app.use("/api/cart", cartRoutes);
-// app.use("/api/images", imageRoutes);
-// app.use("/api/checkout", checkoutRoutes);
-// app.use("/api/convert", currencyRoutes);
-// app.use("/api/pay", paymentRoutes);
-// app.use("/api/shipping", shippingRoutes);
-// app.use("/api/ads", adRoutes);
-
-// const PORT = process.env.PORT || 8081;
-// app.listen(PORT, () =>
-//   console.log(`REST → gRPC Gateway running on port ${PORT}`)
-// );
-
-
 import express from "express";
+import cors from "cors";
+
+// ROUTES
 import productRoutes from "./routes/product.js";
 import cartRoutes from "./routes/cart.js";
-import checkoutRoutes from "./routes/checkout.js";
 import currencyRoutes from "./routes/currency.js";
-import adRoutes from "./routes/ads.js";
-import paymentRoutes from "./routes/payment.js";
+import checkoutRoutes from "./routes/checkout.js";
+import recommendationRoutes from "./routes/recommendation.js";
 import shippingRoutes from "./routes/shipping.js";
-import imagesRoutes from "./routes/images.js";
+import emailRoutes from "./routes/ads.js"; // ads.js is actually email ads
+import adRoutes from "./routes/ads.js";
+import shoppingAssistantRoutes from "./routes/shoppingassistant.js";
+import paymentRoutes from "./routes/payment.js";
 
 const app = express();
-
+app.use(cors());
 app.use(express.json());
 
-// ---- ROUTES ---- //
+// ----------------------------
+// Health check
+// ----------------------------
+app.get("/", (req, res) => {
+  return res.send("REST → gRPC Gateway running on port 8081");
+});
+
+// ----------------------------
+// API Routes
+// ----------------------------
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
-app.use("/api/checkout", checkoutRoutes);
 app.use("/api/currency", currencyRoutes);
-app.use("/api/ads", adRoutes);
-app.use("/api/payment", paymentRoutes);
+app.use("/api/checkout", checkoutRoutes);
+app.use("/api/recommendations", recommendationRoutes);
 app.use("/api/shipping", shippingRoutes);
+app.use("/api/ads", adRoutes);
+app.use("/api/email", emailRoutes);
+app.use("/api/shoppingassistant", shoppingAssistantRoutes);
+app.use("/api/payment", paymentRoutes);
 
-// serve static product images
-app.use("/products", imagesRoutes);
-
-const PORT = process.env.PORT || 8081;
+// ----------------------------
+// Start Server
+// ----------------------------
+const PORT = 8081;
 
 app.listen(PORT, () => {
   console.log(`REST → gRPC Gateway running on port ${PORT}`);
-  console.log("ENV VARS:");
-  console.log("PRODUCTCATALOG:", process.env.PRODUCTCATALOG_SERVICE_ADDR);
-  console.log("CART:", process.env.CART_SERVICE_ADDR);
-  console.log("CURRENCY:", process.env.CURRENCY_SERVICE_ADDR);
 });
