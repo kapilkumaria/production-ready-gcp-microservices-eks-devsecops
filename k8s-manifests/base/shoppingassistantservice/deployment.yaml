@@ -1,26 +1,3 @@
-# apiVersion: apps/v1
-# kind: Deployment
-# metadata:
-#   name: shoppingassistantservice
-#   namespace: shoppingassistantservice
-# spec:
-#   replicas: 1
-#   selector:
-#     matchLabels:
-#       app: shoppingassistantservice
-#   template:
-#     metadata:
-#       labels:
-#         app: shoppingassistantservice
-#     spec:
-#       serviceAccountName: ecr-access-sa
-#       containers:
-#         - name: shoppingassistantservice
-#           image: shoppingassistantservice:latest
-#           ports:
-#             - containerPort: 8080
-
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -44,4 +21,22 @@ spec:
             - containerPort: 8080
           env:
             - name: PROJECT_ID
-              value: "shoppingassistant-project"
+              value: "demo-project"  # placeholder, can be any string
+
+            - name: REGION
+              value: "us-east-1"  # or whichever region you're using
+
+            - name: ALLOYDB_DATABASE_NAME
+              value: "onlineboutique"  # placeholder
+
+            - name: ALLOYDB_TABLE_NAME
+              value: "products"  # placeholder
+
+            - name: ALLOYDB_CLUSTER_NAME
+              value: "alloydb-cluster"  # placeholder
+
+            - name: ALLOYDB_INSTANCE_NAME
+              value: "alloydb-instance"  # placeholder
+
+            - name: ALLOYDB_SECRET_NAME
+              value: "alloydb-password"  # placeholder
