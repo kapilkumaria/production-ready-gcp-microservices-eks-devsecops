@@ -1,6 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+  - namespace.yaml
+
 images:
+  # GitHub Actions will overwrite this entire section automatically
   - name: adservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/adservice
+<<<<<<< HEAD
     newTag: dbbac15
   - name: cartservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/cartservice
@@ -35,3 +44,50 @@ images:
   - name: shoppingassistantservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shoppingassistantservice
     newTag: dbbac15
+=======
+    newTag: "latest"
+
+  - name: cartservice
+    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/cartservice
+    newTag: "latest"
+
+  - name: checkoutservice
+    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/checkoutservice
+    newTag: "latest"
+
+  - name: currencyservice
+    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/currencyservice
+    newTag: "latest"
+
+  - name: emailservice
+    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/emailservice
+    newTag: "latest"
+
+  - name: frontend-gateway
+    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/frontend-gateway
+    newTag: "latest"
+
+  - name: frontend-ui
+    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/frontend-ui
+    newTag: "latest"
+
+  - name: paymentservice
+    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/paymentservice
+    newTag: "latest"
+
+  - name: productcatalogservice
+    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/productcatalogservice
+    newTag: "latest"
+
+  - name: recommendationservice
+    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/recommendationservice
+    newTag: "latest"
+
+  - name: shippingservice
+    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shippingservice
+    newTag: "latest"
+
+  - name: shoppingassistantservice
+    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shoppingassistantservice
+    newTag: "latest"
+>>>>>>> d5967c66 (added)
