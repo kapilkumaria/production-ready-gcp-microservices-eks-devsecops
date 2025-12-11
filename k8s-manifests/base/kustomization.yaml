@@ -3,7 +3,7 @@ kind: Kustomization
 
 resources:
   # Namespaces
-  - namespaces.yaml
+  - namespace.yaml
 
   # Service accounts (one per microservice namespace)
   - service-accounts/adservice-sa.yaml
