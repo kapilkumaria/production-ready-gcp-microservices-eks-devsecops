@@ -38,3 +38,6 @@ spec:
 
             - name: EMAIL_SERVICE_ADDR
               value: "emailservice.emailservice.svc.cluster.local:8080"
+
+            - name: PAYMENT_SERVICE_ADDR
+              value: "paymentservice.paymentservice.svc.cluster.local:50051"
