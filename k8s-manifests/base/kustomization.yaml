@@ -2,22 +2,55 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  # Namespace
   - namespace.yaml
 
-  # Service accounts directory (contains all SA files)
-  - service-accounts
+  # Service accounts
+  - service-accounts/adservice-sa.yaml
+  - service-accounts/cartservice-sa.yaml
+  - service-accounts/checkoutservice-sa.yaml
+  - service-accounts/currencyservice-sa.yaml
+  - service-accounts/emailservice-sa.yaml
+  - service-accounts/frontend-gateway-sa.yaml
+  - service-accounts/frontend-ui-sa.yaml
+  - service-accounts/paymentservice-sa.yaml
+  - service-accounts/productcatalogservice-sa.yaml
+  - service-accounts/recommendationservice-sa.yaml
+  - service-accounts/shippingservice-sa.yaml
+  - service-accounts/shoppingassistantservice-sa.yaml
 
-  # Each microservice directory (each contains deployment.yaml + service.yaml)
-  - adservice
-  - cartservice
-  - checkoutservice
-  - currencyservice
-  - emailservice
-  - frontend-gateway
-  - frontend-ui
-  - paymentservice
-  - productcatalogservice
-  - recommendationservice
-  - shippingservice
-  - shoppingassistantservice
+  # Deployments + Services (explicit files)
+  - adservice/deployment.yaml
+  - adservice/service.yaml
+
+  - cartservice/deployment.yaml
+  - cartservice/service.yaml
+
+  - checkoutservice/deployment.yaml
+  - checkoutservice/service.yaml
+
+  - currencyservice/deployment.yaml
+  - currencyservice/service.yaml
+
+  - emailservice/deployment.yaml
+  - emailservice/service.yaml
+
+  - frontend-gateway/deployment.yaml
+  - frontend-gateway/service.yaml
+
+  - frontend-ui/deployment.yaml
+  - frontend-ui/service.yaml
+
+  - paymentservice/deployment.yaml
+  - paymentservice/service.yaml
+
+  - productcatalogservice/deployment.yaml
+  - productcatalogservice/service.yaml
+
+  - recommendationservice/deployment.yaml
+  - recommendationservice/service.yaml
+
+  - shippingservice/deployment.yaml
+  - shippingservice/service.yaml
+
+  - shoppingassistantservice/deployment.yaml
+  - shoppingassistantservice/service.yaml
