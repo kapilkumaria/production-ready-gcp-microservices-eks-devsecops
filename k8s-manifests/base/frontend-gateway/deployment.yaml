@@ -13,7 +13,7 @@ spec:
       labels:
         app: frontend-gateway
     spec:
-      serviceAccountName: ecr-access-sa
+      serviceAccountName: ecr-access-gateway-sa
       containers:
         - name: frontend-gateway
           image: frontend-gateway:latest

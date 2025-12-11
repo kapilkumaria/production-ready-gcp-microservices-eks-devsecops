@@ -13,7 +13,7 @@ spec:
       labels:
         app: frontend-ui
     spec:
-      serviceAccountName: ecr-access-sa
+      serviceAccountName: ecr-access-ui-sa
       containers:
         - name: frontend-ui
           image: frontend-ui:latest
