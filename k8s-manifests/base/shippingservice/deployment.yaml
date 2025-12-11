@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shippingservice
+  namespace: shippingservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shippingservice
+  template:
+    metadata:
+      labels:
+        app: shippingservice
+    spec:
+      serviceAccountName: ecr-access-sa
+      containers:
+        - name: shippingservice
+          image: shippingservice:latest
+          ports:
+            - containerPort: 50051

@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: adservice
+  namespace: adservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: adservice
+  template:
+    metadata:
+      labels:
+        app: adservice
+    spec:
+      serviceAccountName: ecr-access-sa
+      containers:
+        - name: adservice
+          image: adservice:latest
+          ports:
+            - containerPort: 9555

@@ -1,8 +1,0 @@
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: dummy-not-used
-spec:
-  template:
-    spec:
-      serviceAccountName: ecr-access-sa

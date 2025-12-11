@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-ui
+  namespace: frontend-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend-ui
+  template:
+    metadata:
+      labels:
+        app: frontend-ui
+    spec:
+      serviceAccountName: ecr-access-sa
+      containers:
+        - name: frontend-ui
+          image: frontend-ui:latest
+          ports:
+            - containerPort: 80

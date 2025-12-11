@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-gateway
+  namespace: frontend-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend-gateway
+  template:
+    metadata:
+      labels:
+        app: frontend-gateway
+    spec:
+      serviceAccountName: ecr-access-sa
+      containers:
+        - name: frontend-gateway
+          image: frontend-gateway:latest
+          ports:
+            - containerPort: 8081

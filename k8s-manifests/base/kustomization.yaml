@@ -1,0 +1,48 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  # Namespaces
+  - namespaces.yaml
+
+  # Service accounts (one per microservice namespace)
+  - service-accounts/adservice-sa.yaml
+  - service-accounts/cartservice-sa.yaml
+  - service-accounts/checkoutservice-sa.yaml
+  - service-accounts/currencyservice-sa.yaml
+  - service-accounts/emailservice-sa.yaml
+  - service-accounts/frontend-gateway-sa.yaml
+  - service-accounts/frontend-ui-sa.yaml
+  - service-accounts/paymentservice-sa.yaml
+  - service-accounts/productcatalogservice-sa.yaml
+  - service-accounts/recommendationservice-sa.yaml
+  - service-accounts/shippingservice-sa.yaml
+  - service-accounts/shoppingassistantservice-sa.yaml
+
+  # Deployments
+  - deployments/adservice.yaml
+  - deployments/cartservice.yaml
+  - deployments/checkoutservice.yaml
+  - deployments/currencyservice.yaml
+  - deployments/emailservice.yaml
+  - deployments/frontend-gateway.yaml
+  - deployments/frontend-ui.yaml
+  - deployments/paymentservice.yaml
+  - deployments/productcatalogservice.yaml
+  - deployments/recommendationservice.yaml
+  - deployments/shippingservice.yaml
+  - deployments/shoppingassistantservice.yaml
+
+  # Services
+  - services/adservice.yaml
+  - services/cartservice.yaml
+  - services/checkoutservice.yaml
+  - services/currencyservice.yaml
+  - services/emailservice.yaml
+  - services/frontend-gateway.yaml
+  - services/frontend-ui.yaml
+  - services/paymentservice.yaml
+  - services/productcatalogservice.yaml
+  - services/recommendationservice.yaml
+  - services/shippingservice.yaml
+  - services/shoppingassistantservice.yaml

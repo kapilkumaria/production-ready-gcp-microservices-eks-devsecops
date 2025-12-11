@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: recommendationservice
+  namespace: recommendationservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: recommendationservice
+  template:
+    metadata:
+      labels:
+        app: recommendationservice
+    spec:
+      serviceAccountName: ecr-access-sa
+      containers:
+        - name: recommendationservice
+          image: recommendationservice:latest
+          ports:
+            - containerPort: 8080

@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: checkoutservice
+  namespace: checkoutservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: checkoutservice
+  template:
+    metadata:
+      labels:
+        app: checkoutservice
+    spec:
+      serviceAccountName: ecr-access-sa
+      containers:
+        - name: checkoutservice
+          image: checkoutservice:latest
+          ports:
+            - containerPort: 5050

@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: productcatalogservice
+  namespace: productcatalogservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: productcatalogservice
+  template:
+    metadata:
+      labels:
+        app: productcatalogservice
+    spec:
+      serviceAccountName: ecr-access-sa
+      containers:
+        - name: productcatalogservice
+          image: productcatalogservice:latest
+          ports:
+            - containerPort: 3550

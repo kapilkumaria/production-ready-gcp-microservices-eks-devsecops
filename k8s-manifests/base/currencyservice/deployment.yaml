@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: currencyservice
+  namespace: currencyservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: currencyservice
+  template:
+    metadata:
+      labels:
+        app: currencyservice
+    spec:
+      serviceAccountName: ecr-access-sa
+      containers:
+        - name: currencyservice
+          image: currencyservice:latest
+          ports:
+            - containerPort: 7000
