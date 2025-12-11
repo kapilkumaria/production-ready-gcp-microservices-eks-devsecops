@@ -42,14 +42,7 @@ items:
       name: frontend-gateway
       labels:
         app.kubernetes.io/managed-by: argocd
-
-  - apiVersion: v1
-    kind: Namespace
-    metadata:
-      name: frontend-ui
-      labels:
-        app.kubernetes.io/managed-by: argocd
-
+  
   - apiVersion: v1
     kind: Namespace
     metadata:

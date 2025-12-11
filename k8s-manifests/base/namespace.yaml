@@ -30,12 +30,7 @@ items:
     kind: Namespace
     metadata:
       name: frontend-gateway
-
-  - apiVersion: v1
-    kind: Namespace
-    metadata:
-      name: frontend-ui
-
+  
   - apiVersion: v1
     kind: Namespace
     metadata:
