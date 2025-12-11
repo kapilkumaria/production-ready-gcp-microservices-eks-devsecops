@@ -8,37 +8,37 @@ images:
   # GitHub Actions will overwrite this entire section automatically
   - name: adservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/adservice
-    newTag: "69637ef"
+    newTag: "19561bb"
   - name: cartservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/cartservice
-    newTag: "69637ef"
+    newTag: "19561bb"
   - name: checkoutservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/checkoutservice
-    newTag: "69637ef"
+    newTag: "19561bb"
   - name: currencyservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/currencyservice
-    newTag: "69637ef"
+    newTag: "19561bb"
   - name: emailservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/emailservice
-    newTag: "69637ef"
+    newTag: "19561bb"
   - name: frontend-gateway
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/frontend-gateway
-    newTag: "69637ef"
+    newTag: "19561bb"
   - name: frontend-ui
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/frontend-ui
-    newTag: "69637ef"
+    newTag: "19561bb"
   - name: paymentservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/paymentservice
-    newTag: "69637ef"
+    newTag: "19561bb"
   - name: productcatalogservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/productcatalogservice
-    newTag: "69637ef"
+    newTag: "19561bb"
   - name: recommendationservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/recommendationservice
-    newTag: "69637ef"
+    newTag: "19561bb"
   - name: shippingservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shippingservice
-    newTag: "69637ef"
+    newTag: "19561bb"
   - name: shoppingassistantservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shoppingassistantservice
-    newTag: "69637ef"
+    newTag: "19561bb"
