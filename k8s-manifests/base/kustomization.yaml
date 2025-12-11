@@ -39,6 +39,7 @@ resources:
 
   - frontend-ui/deployment.yaml
   - frontend-ui/service.yaml
+  - frontend-ui/ingress.yaml
 
   - paymentservice/deployment.yaml
   - paymentservice/service.yaml
