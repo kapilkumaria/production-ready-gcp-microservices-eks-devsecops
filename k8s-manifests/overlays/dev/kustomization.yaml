@@ -1,57 +1,43 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-
 resources:
   - ../../base
-
 patches:
   - path: frontend-gateway-patch.yaml
-
 images:
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/adservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/adservice
-    newTag: "PLACEHOLDER"
-
+    newTag: "2e4e648"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/cartservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/cartservice
-    newTag: "PLACEHOLDER"
-
+    newTag: "2e4e648"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/checkoutservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/checkoutservice
-    newTag: "PLACEHOLDER"
-
+    newTag: "2e4e648"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/currencyservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/currencyservice
-    newTag: "PLACEHOLDER"
-
+    newTag: "2e4e648"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/emailservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/emailservice
-    newTag: "PLACEHOLDER"
-
+    newTag: "2e4e648"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/frontend-gateway
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/frontend-gateway
-    newTag: "PLACEHOLDER"
-
+    newTag: "2e4e648"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/frontend-ui
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/frontend-ui
-    newTag: "PLACEHOLDER"
-
+    newTag: "2e4e648"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/paymentservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/paymentservice
-    newTag: "PLACEHOLDER"
-
+    newTag: "2e4e648"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/productcatalogservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/productcatalogservice
-    newTag: "PLACEHOLDER"
-
+    newTag: "2e4e648"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/recommendationservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/recommendationservice
-    newTag: "PLACEHOLDER"
-
+    newTag: "2e4e648"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shippingservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shippingservice
-    newTag: "PLACEHOLDER"
-
+    newTag: "2e4e648"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shoppingassistantservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shoppingassistantservice
-    newTag: "PLACEHOLDER"
+    newTag: "2e4e648"
