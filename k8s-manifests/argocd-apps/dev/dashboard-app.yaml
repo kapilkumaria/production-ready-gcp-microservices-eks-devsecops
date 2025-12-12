@@ -7,35 +7,9 @@ spec:
   project: default
 
   source:
-    repoURL: https://kubernetes.github.io/dashboard/
-    chart: kubernetes-dashboard
-    targetRevision: 6.0.8
-    helm:
-      values: |
-        app:
-          image:
-            tag: v2.7.0
-
-        protocolHttp: true
-        
-        service:
-          port: 9090
-
-        containerPort: 9090
-
-        ingress:
-          enabled: true
-          className: nginx
-          annotations:
-            nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
-          paths:
-            - /
-          hosts:
-            - dashboard.kapilkumaria.com
-          tls:
-            - secretName: dashboard-kapilkumaria-com-tls
-              hosts:
-                - dashboard.kapilkumaria.com
+    repoURL: https://github.com/kapilkumaria/production-ready-gcp-microservices-eks-devsecops.git
+    targetRevision: HEAD
+    path: k8s-manifests/dashboard
 
   destination:
     server: https://kubernetes.default.svc
