@@ -3,13 +3,3 @@ kind: Kustomization
 
 resources:
   - namespace.yaml
-  - delete-old-ingress.yaml
-
-# Delete the old ingress so Helm can create the correct one
-patches:
-  - target:
-      version: v1
-      kind: Ingress
-      name: kubernetes-dashboard
-    patch: |
-      $patch: delete
