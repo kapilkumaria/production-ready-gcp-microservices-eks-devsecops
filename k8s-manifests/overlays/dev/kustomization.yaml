@@ -1,16 +1,12 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-
 metadata:
   namespace: default
-
 resources:
   - ../../base
-
 # Apply gateway patch (optional but you added it)
 patchesStrategicMerge:
   - frontend-gateway-patch.yaml
-
 images:
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/adservice
     newTag: "ac75840"
