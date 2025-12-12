@@ -16,13 +16,11 @@ spec:
         app: frontend-gateway
     spec:
       serviceAccountName: ecr-access-gateway-sa
-
       containers:
         - name: frontend-gateway
-
-          
+          # NO TAG HERE — Kustomize will inject the correct tag
           image: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/frontend-gateway
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent   # <- FIXED
 
           ports:
             - containerPort: 8081
