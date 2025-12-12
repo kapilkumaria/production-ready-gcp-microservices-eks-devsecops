@@ -12,10 +12,10 @@ spec:
     targetRevision: 6.0.8
     helm:
       values: |
-        protocolHttp: true        # Because Dashboard runs HTTP internally
+        protocolHttp: true        
         service:
-          port: 9090             # FIX
-        containerPort: 9090      # FIX
+          port: 9090             
+        containerPort: 9090      
         ingress:
           enabled: true
           className: nginx
