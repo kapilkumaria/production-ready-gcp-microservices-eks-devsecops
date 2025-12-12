@@ -12,9 +12,15 @@ spec:
     targetRevision: 6.0.8
     helm:
       values: |
+        app:
+          image:
+            tag: v2.7.0
+
         protocolHttp: true
+        
         service:
           port: 9090
+
         containerPort: 9090
 
         ingress:
@@ -22,6 +28,8 @@ spec:
           className: nginx
           annotations:
             nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+          paths:
+            - /
           hosts:
             - dashboard.kapilkumaria.com
           tls:
