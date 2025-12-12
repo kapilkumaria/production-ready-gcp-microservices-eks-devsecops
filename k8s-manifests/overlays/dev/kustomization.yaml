@@ -7,37 +7,37 @@ patches:
 images:
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/adservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/adservice
-    newTag: "01e5663"
+    newTag: "fb0c5b9"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/cartservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/cartservice
-    newTag: "01e5663"
+    newTag: "fb0c5b9"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/checkoutservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/checkoutservice
-    newTag: "01e5663"
+    newTag: "fb0c5b9"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/currencyservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/currencyservice
-    newTag: "01e5663"
+    newTag: "fb0c5b9"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/emailservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/emailservice
-    newTag: "01e5663"
+    newTag: "fb0c5b9"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/frontend-gateway
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/frontend-gateway
-    newTag: "01e5663"
+    newTag: "fb0c5b9"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/frontend-ui
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/frontend-ui
-    newTag: "01e5663"
+    newTag: "fb0c5b9"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/paymentservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/paymentservice
-    newTag: "01e5663"
+    newTag: "fb0c5b9"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/productcatalogservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/productcatalogservice
-    newTag: "01e5663"
+    newTag: "fb0c5b9"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/recommendationservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/recommendationservice
-    newTag: "01e5663"
+    newTag: "fb0c5b9"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shippingservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shippingservice
-    newTag: "01e5663"
+    newTag: "fb0c5b9"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shoppingassistantservice
     newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shoppingassistantservice
-    newTag: "01e5663"
+    newTag: "fb0c5b9"
