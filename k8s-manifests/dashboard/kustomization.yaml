@@ -5,3 +5,4 @@ resources:
   - namespace.yaml
   - admin-user.yaml
   - ingress.yaml
+  - certificate.yaml
