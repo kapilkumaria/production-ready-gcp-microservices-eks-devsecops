@@ -7,85 +7,32 @@ metadata:
 resources:
   - ../../base
 
-# This makes the patch apply!
+# Apply gateway patch (optional but you added it)
 patchesStrategicMerge:
   - frontend-gateway-patch.yaml
 
 images:
-<<<<<<< HEAD
-  # GitHub Actions will overwrite this entire section automatically
-  - name: adservice
-    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/adservice
-    newTag: "56afbbe"
-  - name: cartservice
-    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/cartservice
-    newTag: "56afbbe"
-  - name: checkoutservice
-    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/checkoutservice
-    newTag: "56afbbe"
-  - name: currencyservice
-    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/currencyservice
-    newTag: "56afbbe"
-  - name: emailservice
-    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/emailservice
-    newTag: "56afbbe"
-  - name: frontend-gateway
-    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/frontend-gateway
-    newTag: "56afbbe"
-  - name: frontend-ui
-    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/frontend-ui
-    newTag: "56afbbe"
-  - name: paymentservice
-    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/paymentservice
-    newTag: "56afbbe"
-  - name: productcatalogservice
-    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/productcatalogservice
-    newTag: "56afbbe"
-  - name: recommendationservice
-    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/recommendationservice
-    newTag: "56afbbe"
-  - name: shippingservice
-    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shippingservice
-    newTag: "56afbbe"
-  - name: shoppingassistantservice
-    newName: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shoppingassistantservice
-    newTag: "56afbbe"
-=======
-  # FULL image names — must match exactly what appears in base YAML
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/adservice
-    newTag: "0c3aca1"
-
+    newTag: "ac75840"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/cartservice
-    newTag: "0c3aca1"
-
+    newTag: "ac75840"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/checkoutservice
-    newTag: "0c3aca1"
-
+    newTag: "ac75840"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/currencyservice
-    newTag: "0c3aca1"
-
+    newTag: "ac75840"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/emailservice
-    newTag: "0c3aca1"
-
-  
+    newTag: "ac75840"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/frontend-gateway
-    newTag: "0c3aca1"
-
+    newTag: "ac75840"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/frontend-ui
-    newTag: "0c3aca1"
-
+    newTag: "ac75840"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/paymentservice
-    newTag: "0c3aca1"
-
+    newTag: "ac75840"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/productcatalogservice
-    newTag: "0c3aca1"
-
+    newTag: "ac75840"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/recommendationservice
-    newTag: "0c3aca1"
-
+    newTag: "ac75840"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shippingservice
-    newTag: "0c3aca1"
-
+    newTag: "ac75840"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shoppingassistantservice
-    newTag: "0c3aca1"
->>>>>>> 256349c6 (fixed image path)
+    newTag: "ac75840"
