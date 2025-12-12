@@ -1,34 +1,44 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+<<<<<<< HEAD
 metadata:
   namespace: default
 resources:
   - ../../base
 # Apply gateway patch (optional but you added it)
+=======
+
+namespace: default
+
+resources:
+  - ../../base
+
+# Ensure the gateway patch is applied
+>>>>>>> 6cb50174 (Fix overlay YAML and reset placeholders)
 patchesStrategicMerge:
   - frontend-gateway-patch.yaml
 images:
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/adservice
-    newTag: "ac75840"
+    newTag: "PLACEHOLDER"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/cartservice
-    newTag: "ac75840"
+    newTag: "PLACEHOLDER"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/checkoutservice
-    newTag: "ac75840"
+    newTag: "PLACEHOLDER"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/currencyservice
-    newTag: "ac75840"
+    newTag: "PLACEHOLDER"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/emailservice
-    newTag: "ac75840"
+    newTag: "PLACEHOLDER"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/frontend-gateway
-    newTag: "ac75840"
+    newTag: "PLACEHOLDER"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/frontend-ui
-    newTag: "ac75840"
+    newTag: "PLACEHOLDER"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/paymentservice
-    newTag: "ac75840"
+    newTag: "PLACEHOLDER"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/productcatalogservice
-    newTag: "ac75840"
+    newTag: "PLACEHOLDER"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/recommendationservice
-    newTag: "ac75840"
+    newTag: "PLACEHOLDER"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shippingservice
-    newTag: "ac75840"
+    newTag: "PLACEHOLDER"
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shoppingassistantservice
-    newTag: "ac75840"
+    newTag: "PLACEHOLDER"
