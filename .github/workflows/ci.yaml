@@ -119,19 +119,22 @@ jobs:
       ############################################################
       # REPLACE ALL PLACEHOLDER TAGS WITH REAL TAGS
       ############################################################
+      
       - name: Update tags in kustomization.yaml
         run: |
           FILE="k8s-manifests/overlays/dev/kustomization.yaml"
 
           for f in images/*/image.txt; do
-            FULL=$(cat "$f")
-            REPO=${FULL%%:*}
-            TAG=${FULL##*:}
+            IMG=$(cat "$f")  # example: 9310.../adservice:abc1234
+            REPO=$(echo "$IMG" | awk -F: '{print $1}')
+            TAG=$(echo "$IMG" | awk -F: '{print $2}')
 
-            echo "Updating: $REPO → $TAG"
+            echo "Updating: $REPO → tag $TAG"
 
-            # Replace the line matching this repo’s tag only
-            sed -i "s|name: $REPO\n    newTag: \".*\"|name: $REPO\n    newTag: \"$TAG\"|g" $FILE
+            yq -i "
+              (.images[] | select(.name == \"$REPO\").newName) = \"$REPO\" |
+              (.images[] | select(.name == \"$REPO\").newTag) = \"$TAG\"
+            " "$FILE"
           done
 
       ############################################################
