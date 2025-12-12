@@ -33,9 +33,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      ############################################################
-      # DETERMINE DOCKERFILE PATH
-      ############################################################
       - name: Determine Dockerfile Path
         id: pathcheck
         run: |
@@ -62,9 +59,6 @@ jobs:
             echo "found=false" >> $GITHUB_OUTPUT
           fi
 
-      ############################################################
-      # DOCKER BUILD
-      ############################################################
       - name: Build Docker Image
         if: steps.pathcheck.outputs.found == 'true'
         run: |
@@ -73,9 +67,6 @@ jobs:
             -f ${{ steps.pathcheck.outputs.dockerfile }} \
             ${{ steps.pathcheck.outputs.context }}
 
-      ############################################################
-      # LOGIN TO ECR
-      ############################################################
       - name: AWS ECR Login
         if: steps.pathcheck.outputs.found == 'true'
         env:
@@ -86,25 +77,18 @@ jobs:
             docker login --username AWS \
               --password-stdin 931058976119.dkr.ecr.us-east-1.amazonaws.com
 
-      ############################################################
-      # TAG & PUSH TO ECR
-      ############################################################
       - name: Push Image to ECR
         if: steps.pathcheck.outputs.found == 'true'
         run: |
           TAG=$(echo "${GITHUB_SHA}" | cut -c1-7)
           ECR="931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices"
+          FULL="$ECR/${{ matrix.service }}:$TAG"
 
-          IMAGE="$ECR/${{ matrix.service }}:$TAG"
+          docker tag ${{ matrix.service }}:latest $FULL
+          docker push $FULL
 
-          docker tag ${{ matrix.service }}:latest $IMAGE
-          docker push $IMAGE
+          echo "$FULL" > image.txt
 
-          echo "$IMAGE" > image.txt
-
-      ############################################################
-      # UPLOAD IMAGE TAG AS ARTIFACT
-      ############################################################
       - name: Upload Image Artifact
         if: steps.pathcheck.outputs.found == 'true'
         uses: actions/upload-artifact@v4
@@ -112,10 +96,8 @@ jobs:
           name: image-${{ matrix.service }}
           path: image.txt
 
-
-
   ############################################################
-  # 2. UPDATE KUSTOMIZATION.YAML (ONE JOB ONLY)
+  # 2. UPDATE KUSTOMIZATION.YAML SAFELY
   ############################################################
   update-manifests:
     runs-on: self-hosted
@@ -127,15 +109,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install yq
-        run: |
-          sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 \
-            -O /usr/bin/yq
-          sudo chmod +x /usr/bin/yq
-
-      ############################################################
-      # DOWNLOAD BUILT IMAGE ARTIFACTS
-      ############################################################
       - name: Download all image artifacts
         uses: actions/download-artifact@v4
         with:
@@ -144,28 +117,25 @@ jobs:
           merge-multiple: false
 
       ############################################################
-      # UPDATE KUSTOMIZATION.YAML USING YQ (CORRECT WAY)
+      # REPLACE ALL PLACEHOLDER TAGS WITH REAL TAGS
       ############################################################
       - name: Update tags in kustomization.yaml
         run: |
           FILE="k8s-manifests/overlays/dev/kustomization.yaml"
 
           for f in images/*/image.txt; do
-            IMG=$(cat "$f")
-            NAME=$(echo "$IMG" | awk -F'[:/]' '{print $(NF-1)}')
-            TAG=$(echo "$IMG" | awk -F: '{print $2}')
-            REPO=$(echo "$IMG" | awk -F: '{print $1}')
+            FULL=$(cat "$f")
+            REPO=${FULL%%:*}
+            TAG=${FULL##*:}
 
-            echo "Updating: $NAME → $REPO:$TAG"
+            echo "Updating: $REPO → $TAG"
 
-            yq -i "
-              (.images[] | select(.name == \"$NAME\").newName) = \"$REPO\" |
-              (.images[] | select(.name == \"$NAME\").newTag) = \"$TAG\"
-            " "$FILE"
+            # Replace the line matching this repo’s tag only
+            sed -i "s|name: $REPO\n    newTag: \".*\"|name: $REPO\n    newTag: \"$TAG\"|g" $FILE
           done
 
       ############################################################
-      # COMMIT CHANGES SAFELY
+      # COMMIT BACK TO GITHUB
       ############################################################
       - name: Commit manifest update
         env:
@@ -173,25 +143,20 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
-
           git add k8s-manifests/overlays/dev/kustomization.yaml
 
           if ! git diff --cached --quiet; then
             git commit -m "Update image tags for all services"
             git push https://x-access-token:${TOKEN}@github.com/${{ github.repository }}.git
-            echo "Pushed ✔"
           else
             echo "No changes to commit."
           fi
 
-
-
   ############################################################
-  # 3. DONE (ARGOCD AUTO-SYNC)
+  # 3. DONE
   ############################################################
   done:
     needs: update-manifests
     runs-on: self-hosted
     steps:
-      - run: echo "CI/CD completed — ArgoCD will now sync latest images!"
+      - run: echo "CI/CD completed — ArgoCD syncing latest images!"
