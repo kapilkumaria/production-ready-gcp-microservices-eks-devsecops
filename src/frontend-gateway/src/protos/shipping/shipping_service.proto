@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package hipstershop;
+
+message Empty {}
+
+message QuoteRequest {
+  string user_id = 1;
+  string currency_code = 2;
+}
+
+message Money {
+  string currency_code = 1;
+  int64 units = 2;
+  int32 nanos = 3;
+}
+
+message QuoteResponse {
+  Money cost_usd = 1;
+  Money cost_local = 2;
+}
+
+service ShippingService {
+  rpc GetQuote(QuoteRequest) returns (QuoteResponse);
+}
