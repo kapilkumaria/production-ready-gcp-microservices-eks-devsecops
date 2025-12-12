@@ -1,27 +1,3 @@
-# apiVersion: argoproj.io/v1alpha1
-# kind: Application
-# metadata:
-#   name: dashboard
-#   namespace: argocd
-# spec:
-#   project: default
-
-#   source:
-#     repoURL: https://github.com/kapilkumaria/production-ready-gcp-microservices-eks-devsecops.git
-#     targetRevision: HEAD
-#     path: k8s-manifests/dashboard
-
-#   destination:
-#     server: https://kubernetes.default.svc
-#     namespace: kubernetes-dashboard   
-
-#   syncPolicy:
-#     automated:
-#       prune: true
-#       selfHeal: true
-#     syncOptions:
-#       - CreateNamespace=true
-
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -33,12 +9,14 @@ spec:
   source:
     repoURL: https://kubernetes.github.io/dashboard/
     chart: kubernetes-dashboard
-    targetRevision: 6.0.8    # latest stable chart
+    targetRevision: 6.0.8
     helm:
       values: |
         protocolHttp: true
+
         service:
           externalPort: 443
+
         ingress:
           enabled: true
           className: nginx
