@@ -1,38 +1,12 @@
-// import grpc from "@grpc/grpc-js";
-// import protoLoader from "@grpc/proto-loader";
-// import path from "path";
-
-// const PROTO_PATH = path.resolve("protos/payment/payment.proto");
-
-// const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
-//   includeDirs: [path.resolve("protos")],
-//   keepCase: true,
-//   longs: String,
-//   enums: String,
-//   defaults: true,
-//   oneofs: true,
-// });
-
-// const proto = grpc.loadPackageDefinition(packageDefinition).hipstershop;
-
-// export const paymentClient = new proto.PaymentService(
-//   "paymentservice:50051",
-//   grpc.credentials.createInsecure()
-// );
-
-
-import grpc from "@grpc/grpc-js";
 import loadProto from "./loadProto.js";
-import dotenv from "dotenv";
-dotenv.config();
+import grpc from "@grpc/grpc-js";
 
-const proto = loadProto("payment_service.proto");
+const proto = loadProto("payment/demo.proto");
 
-const PAYMENT_ADDR =
+const PaymentService = proto.hipstershop.PaymentService;
+
+export const paymentClient = new PaymentService(
   process.env.PAYMENT_SERVICE_ADDR ??
-  "paymentservice.paymentservice.svc.cluster.local:50051";
-
-export const paymentClient = new proto.PaymentService(
-  PAYMENT_ADDR,
+    "paymentservice.paymentservice.svc.cluster.local:50051",
   grpc.credentials.createInsecure()
 );

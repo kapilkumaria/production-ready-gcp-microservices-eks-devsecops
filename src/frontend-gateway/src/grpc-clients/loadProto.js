@@ -7,11 +7,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
- * Loads a protos file from /app/src/protos/*
+ * Load a proto file relative to src/protos/
  */
-export default function loadProto(protoPath) {
-  // FIX: do NOT add extra folder level
-  const fullPath = path.join(__dirname, "../protos", protoPath);
+export default function loadProto(relativePath) {
+  const fullPath = path.join(__dirname, "..", "protos", relativePath);
 
   const packageDefinition = protoLoader.loadSync(fullPath, {
     keepCase: true,
@@ -19,9 +18,6 @@ export default function loadProto(protoPath) {
     enums: String,
     defaults: true,
     oneofs: true,
-    includeDirs: [
-      path.join(__dirname, "../protos")  // ensure imports load correctly
-    ]
   });
 
   return grpc.loadPackageDefinition(packageDefinition);

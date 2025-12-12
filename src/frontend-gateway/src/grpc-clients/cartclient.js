@@ -3,7 +3,6 @@ import grpc from "@grpc/grpc-js";
 
 const proto = loadProto("cart/Cart.proto");
 
-// Because Cart.proto has: package hipstershop;
 const CartService = proto.hipstershop.CartService;
 
 export const cartClient = new CartService(

@@ -1,15 +1,14 @@
 import loadProto from "./loadProto.js";
 import grpc from "@grpc/grpc-js";
 
-// Load proto
-const productProto = loadProto("productcatalog/product_catalog.proto");
+// Loads: src/protos/productcatalog/product.proto
+const proto = loadProto("productcatalog/product.proto");
 
-// FIX: Use the actual package name from your proto file
-const ProductCatalogService =
-  productProto.hipstershop?.ProductCatalogService ??
-  productProto.productcatalog?.ProductCatalogService; // fallback in case you change proto later
+// Package is: productcatalog
+const ProductCatalogService = proto.productcatalog.ProductCatalogService;
 
 export const productClient = new ProductCatalogService(
-  process.env.PRODUCTCATALOG_SERVICE_ADDR,
+  process.env.PRODUCTCATALOG_SERVICE_ADDR ??
+    "productcatalogservice.productcatalogservice.svc.cluster.local:3550",
   grpc.credentials.createInsecure()
 );
