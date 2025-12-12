@@ -13,18 +13,10 @@ spec:
     helm:
       values: |
         protocolHttp: true
-
-        # --- Correct service settings ---
         service:
-          type: ClusterIP
-          externalPort: 9090      # Service port exposed
-          internalPort: 9090      # TargetPort → container
+          port: 9090
+        containerPort: 9090
 
-        # --- Pod container port ---
-        containerPorts:
-          dashboard: 9090
-
-        # --- Ingress config ---
         ingress:
           enabled: true
           className: nginx
