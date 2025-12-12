@@ -16,7 +16,9 @@ spec:
       serviceAccountName: ecr-access-sa
       containers:
         - name: shoppingassistantservice
-          image: shoppingassistantservice:latest
+          image: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shoppingassistantservice:latest
+          imagePullPolicy: Always
+
           ports:
             - containerPort: 8080
           env:

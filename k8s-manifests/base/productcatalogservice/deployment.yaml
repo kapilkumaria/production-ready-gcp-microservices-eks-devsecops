@@ -16,6 +16,8 @@ spec:
       serviceAccountName: ecr-access-sa
       containers:
         - name: productcatalogservice
-          image: productcatalogservice:latest
+          image: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/productcatalogservice:latest
+          imagePullPolicy: Always
+
           ports:
             - containerPort: 3550

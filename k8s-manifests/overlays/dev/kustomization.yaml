@@ -1,9 +1,15 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+<<<<<<< HEAD
+=======
+
+>>>>>>> 88ffe889 (Fix overlay YAML and reset placeholders)
 resources:
   - ../../base
-patchesStrategicMerge:
-  - frontend-gateway-patch.yaml
+
+patches:
+  - path: frontend-gateway-patch.yaml
+
 images:
   - name: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/adservice
     newTag: "PLACEHOLDER"

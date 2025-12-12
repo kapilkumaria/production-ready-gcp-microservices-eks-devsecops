@@ -16,6 +16,8 @@ spec:
       serviceAccountName: ecr-access-sa
       containers:
         - name: paymentservice
-          image: paymentservice:latest
+          image: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/paymentservice:latest
+          imagePullPolicy: Always
+
           ports:
             - containerPort: 50051

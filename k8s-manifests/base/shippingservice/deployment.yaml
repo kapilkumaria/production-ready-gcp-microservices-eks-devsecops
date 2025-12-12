@@ -16,6 +16,8 @@ spec:
       serviceAccountName: ecr-access-sa
       containers:
         - name: shippingservice
-          image: shippingservice:latest
+          image: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/shippingservice:latest
+          imagePullPolicy: Always
+
           ports:
             - containerPort: 50051

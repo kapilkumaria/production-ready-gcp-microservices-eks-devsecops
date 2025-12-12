@@ -16,6 +16,8 @@ spec:
       serviceAccountName: ecr-access-sa
       containers:
         - name: currencyservice
-          image: currencyservice:latest
+          image: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/currencyservice:latest
+          imagePullPolicy: Always
+
           ports:
             - containerPort: 7000

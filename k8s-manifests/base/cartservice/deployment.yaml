@@ -16,6 +16,8 @@ spec:
       serviceAccountName: ecr-access-sa
       containers:
         - name: cartservice
-          image: cartservice:latest
+          image: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/cartservice:latest
+          imagePullPolicy: Always
+
           ports:
             - containerPort: 7070

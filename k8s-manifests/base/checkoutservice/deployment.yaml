@@ -16,7 +16,9 @@ spec:
       serviceAccountName: ecr-access-sa
       containers:
         - name: checkoutservice
-          image: checkoutservice:latest
+          image: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/checkoutservice:latest
+          imagePullPolicy: Always
+          
           ports:
             - containerPort: 5050
           env:

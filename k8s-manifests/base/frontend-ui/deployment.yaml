@@ -16,6 +16,8 @@ spec:
       serviceAccountName: ecr-access-ui-sa
       containers:
         - name: frontend-ui
-          image: frontend-ui:latest
+          image: 931058976119.dkr.ecr.us-east-1.amazonaws.com/gcp-microservices/frontend-ui:latest
+          imagePullPolicy: Always
+
           ports:
             - containerPort: 80
