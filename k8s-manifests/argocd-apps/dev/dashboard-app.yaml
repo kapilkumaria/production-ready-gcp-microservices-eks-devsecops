@@ -5,18 +5,25 @@ metadata:
   namespace: argocd
 spec:
   project: default
+
   source:
-    repoURL: https://kubernetes.github.io/dashboard/
-    chart: kubernetes-dashboard
-    targetRevision: 6.0.8
+    repoURL: https://github.com/kapilkumaria/production-ready-gcp-microservices-eks-devsecops.git
+    targetRevision: HEAD
+    path: k8s-manifests/dashboard
+
+    # --- This merges Helm chart + custom RBAC ---
     helm:
+      releaseName: dashboard
+      chart: kubernetes-dashboard
+      repoURL: https://kubernetes.github.io/dashboard/
+      version: 6.0.8
       values: |
+        protocolHttp: true
+
         app:
           image:
             tag: v2.7.0
-
-        protocolHttp: true
-
+        
         service:
           port: 9090
 
@@ -44,3 +51,4 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
