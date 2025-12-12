@@ -12,14 +12,15 @@ spec:
     targetRevision: 6.0.8
     helm:
       values: |
-        protocolHttp: true
-
+        protocolHttp: true        # Because Dashboard runs HTTP internally
         service:
-          externalPort: 443
-
+          port: 9090             # FIX
+        containerPort: 9090      # FIX
         ingress:
           enabled: true
           className: nginx
+          annotations:
+            nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
           hosts:
             - dashboard.kapilkumaria.com
           tls:
