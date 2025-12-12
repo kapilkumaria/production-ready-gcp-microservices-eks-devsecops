@@ -6,12 +6,14 @@ import productRoutes from "./routes/product.js";
 import cartRoutes from "./routes/cart.js";
 import currencyRoutes from "./routes/currency.js";
 import checkoutRoutes from "./routes/checkout.js";
-import recommendationRoutes from "./routes/recommendation.js";
 import shippingRoutes from "./routes/shipping.js";
-import emailRoutes from "./routes/ads.js"; // ads.js is actually email ads
 import adRoutes from "./routes/ads.js";
-import shoppingAssistantRoutes from "./routes/shoppingassistant.js";
+import emailRoutes from "./routes/ads.js"; // same ads router
 import paymentRoutes from "./routes/payment.js";
+
+// ❌ REMOVED — file does NOT exist
+// import recommendationRoutes from "./routes/recommendation.js";
+// import shoppingAssistantRoutes from "./routes/shoppingassistant.js";
 
 const app = express();
 app.use(cors());
@@ -31,11 +33,14 @@ app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/currency", currencyRoutes);
 app.use("/api/checkout", checkoutRoutes);
-app.use("/api/recommendations", recommendationRoutes);
+
+// ❌ REMOVED because file does not exist
+// app.use("/api/recommendations", recommendationRoutes);
+// app.use("/api/shoppingassistant", shoppingAssistantRoutes);
+
 app.use("/api/shipping", shippingRoutes);
 app.use("/api/ads", adRoutes);
 app.use("/api/email", emailRoutes);
-app.use("/api/shoppingassistant", shoppingAssistantRoutes);
 app.use("/api/payment", paymentRoutes);
 
 // ----------------------------
