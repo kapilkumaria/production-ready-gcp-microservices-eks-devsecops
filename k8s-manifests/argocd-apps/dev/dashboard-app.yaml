@@ -7,16 +7,29 @@ spec:
   project: default
 
   source:
-    repoURL: https://kubernetes.github.io/dashboard/
+    repoURL: https://github.com/kapilkumaria/production-ready-gcp-microservices-eks-devsecops.git
+    targetRevision: HEAD
     chart: kubernetes-dashboard
-    targetRevision: 6.0.8
+    repoURL: https://kubernetes.github.io/dashboard/
+    path: ""
     helm:
       releaseName: dashboard
+      version: 6.0.8
       values: |
         protocolHttp: true
 
+        app:
+          image:
+            tag: v2.7.0
+
         service:
           port: 9090
+
+        metricsScraper:
+          enabled: false
+
+        extraArgs:
+          - --namespace=kubernetes-dashboard
 
         ingress:
           enabled: true
@@ -26,9 +39,18 @@ spec:
           hosts:
             - dashboard.kapilkumaria.com
           tls:
-            - secretName: wildcard-kapilkumaria-com-tls
+            - secretName: dashboard-kapilkumaria-com-tls
               hosts:
                 - dashboard.kapilkumaria.com
+
+        rbac:
+          create: true
+        serviceAccount:
+          create: true
+          name: admin-user
+        clusterRoleBinding:
+          create: true
+          name: admin-user
 
   destination:
     server: https://kubernetes.default.svc
@@ -40,4 +62,4 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
-      - ServerSideApply=true
+      - ApplyOutOfSyncOnly=true
