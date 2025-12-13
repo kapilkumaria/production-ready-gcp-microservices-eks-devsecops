@@ -6,7 +6,7 @@ metadata:
 spec:
   secretName: dashboard-kapilkumaria-com-tls
   issuerRef:
-    name: letsencrypt-prod
+    name: letsencrypt-production
     kind: ClusterIssuer
   dnsNames:
     - dashboard.kapilkumaria.com
