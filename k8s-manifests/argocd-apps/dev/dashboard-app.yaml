@@ -7,41 +7,37 @@ spec:
   project: default
 
   source:
-    chart: kubernetes-dashboard
     repoURL: https://kubernetes.github.io/dashboard/
-    targetRevision: 6.0.8   # chart version, NOT HEAD
+    chart: kubernetes-dashboard
+    targetRevision: 6.0.8    # Helm chart version
+
     helm:
       releaseName: dashboard
       values: |
         protocolHttp: true
 
+        # Disable Helm-managed ingress completely
+        ingress:
+          enabled: false
+
+        # Do NOT create service account via Helm
+        serviceAccount:
+          create: false
+          name: admin-user
+
+        # Do NOT let Helm create RBAC or bindings
+        rbac:
+          create: false
+        clusterRoleBinding:
+          create: false
+
+        # Dashboard container config
         app:
           image:
             tag: v2.7.0
 
         service:
           port: 9090
-
-        ingress:
-          enabled: true
-          className: nginx
-          annotations:
-            nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
-          hosts:
-            - dashboard.kapilkumaria.com
-          tls:
-            - secretName: dashboard-kapilkumaria-com-tls
-              hosts:
-                - dashboard.kapilkumaria.com
-
-        rbac:
-          create: true
-        serviceAccount:
-          create: true
-          name: admin-user
-        clusterRoleBinding:
-          create: true
-          name: admin-user
 
   destination:
     server: https://kubernetes.default.svc

@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dashboard-kubernetes-dashboard
+  namespace: kubernetes-dashboard
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+      - dashboard.kapilkumaria.com
+    secretName: dashboard-kapilkumaria-com-tls
+  rules:
+  - host: dashboard.kapilkumaria.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: dashboard-kubernetes-dashboard
+            port:
+              number: 443

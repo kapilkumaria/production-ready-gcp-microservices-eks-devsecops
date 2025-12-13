@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: dashboard-kapilkumaria-com
+  namespace: kubernetes-dashboard
+spec:
+  secretName: dashboard-kapilkumaria-com-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+    - dashboard.kapilkumaria.com
