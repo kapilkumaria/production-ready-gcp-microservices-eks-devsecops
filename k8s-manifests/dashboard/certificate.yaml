@@ -8,5 +8,6 @@ spec:
   issuerRef:
     name: letsencrypt-production
     kind: ClusterIssuer
+  commonName: dashboard.kapilkumaria.com
   dnsNames:
     - dashboard.kapilkumaria.com
